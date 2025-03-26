@@ -62,7 +62,7 @@ export default function About() {
           >
             <div className="aspect-w-1 aspect-h-1 mx-auto max-w-md relative z-10">
               <Image
-                src="/about.jpg"
+                src="/mypic.jpg"
                 alt="Working at desk"
                 width={500}
                 height={500}

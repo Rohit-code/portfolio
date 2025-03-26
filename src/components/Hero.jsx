@@ -167,7 +167,7 @@ export default function Hero() {
               <div className="absolute inset-0 rounded-full bg-indigo-600/20 animate-glow" />
               <div className="absolute inset-2 rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                 <Image
-                  src="/profile.jpg" 
+                  src="/pic.jpg" 
                   alt="Rohit Boni"
                   width={300}
                   height={300}
