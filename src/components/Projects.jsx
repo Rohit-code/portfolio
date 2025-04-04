@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { FaExternalLinkAlt, FaGithub } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaGithub, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { projects } from '@/data/projects';
 
 export default function Projects() {
   const [filter, setFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const filteredProjects = filter === 'all' 
     ? projects 
@@ -18,12 +19,42 @@ export default function Projects() {
   
   const openProject = (project) => {
     setSelectedProject(project);
+    setCurrentImageIndex(0);
     document.body.style.overflow = 'hidden';
   };
   
   const closeProject = () => {
     setSelectedProject(null);
     document.body.style.overflow = 'auto';
+  };
+
+  const nextImage = (e) => {
+    e.stopPropagation();
+    // Assuming each project has images array with paths to multiple images
+    if (selectedProject?.images && selectedProject.images.length > 1) {
+      setCurrentImageIndex((prev) => 
+        prev === selectedProject.images.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevImage = (e) => {
+    e.stopPropagation();
+    if (selectedProject?.images && selectedProject.images.length > 1) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? selectedProject.images.length - 1 : prev - 1
+      );
+    }
+  };
+  
+  // Helper function to get project images
+  const getProjectImages = (project) => {
+    // If the project has an images array, use it
+    if (project.images && project.images.length > 0) {
+      return project.images;
+    }
+    // Otherwise, use the single image property as a fallback
+    return project.image ? [project.image] : ["/project-placeholder.jpg"];
   };
   
   return (
@@ -79,7 +110,7 @@ export default function Projects() {
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
-                    src={project.image || "/project-placeholder.jpg"}
+                    src={getProjectImages(project)[0]}
                     alt={project.title}
                     fill
                     className="object-cover transition-transform duration-500 hover:scale-110"
@@ -118,7 +149,7 @@ export default function Projects() {
           </AnimatePresence>
         </motion.div>
         
-        {/* Project Modal */}
+        {/* Project Modal with Image Gallery */}
         <AnimatePresence>
           {selectedProject && (
             <motion.div
@@ -137,12 +168,48 @@ export default function Projects() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="relative h-60 md:h-80">
+                  {/* Image Gallery */}
                   <Image
-                    src={selectedProject.image || "/project-placeholder.jpg"}
+                    src={getProjectImages(selectedProject)[currentImageIndex]}
                     alt={selectedProject.title}
                     fill
                     className="object-cover"
                   />
+                  
+                  {/* Image Navigation Controls */}
+                  {getProjectImages(selectedProject).length > 1 && (
+                    <>
+                      <button 
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+                        onClick={prevImage}
+                      >
+                        <FaArrowLeft />
+                      </button>
+                      <button 
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+                        onClick={nextImage}
+                      >
+                        <FaArrowRight />
+                      </button>
+                      
+                      {/* Image Indicator Dots */}
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                        {getProjectImages(selectedProject).map((_, index) => (
+                          <button 
+                            key={index}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentImageIndex(index);
+                            }}
+                            className={`w-2 h-2 rounded-full ${
+                              currentImageIndex === index ? 'bg-white' : 'bg-white/40'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
                   <button 
                     className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
                     onClick={closeProject}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaGithub, FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa';
+import emailjs from '@emailjs/browser';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -23,27 +24,66 @@ export default function Contact() {
     }));
   };
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus(null), 3000);
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Prepare data for EmailJS
+    const templateParams = {
+      from_name: formData.name,
+      from_email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
+      reply_to: formData.email,  // Explicitly set reply_to parameter
+      to_name: "Rohit"           // Optional: Your name as recipient
+    };
     
-    // Simulated success - in production connect this to a real API endpoint
-    setSubmitStatus('success');
-    setIsSubmitting(false);
+    // For debugging - log what we're sending
+    console.log('Sending email with params:', templateParams);
     
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-      });
-      setSubmitStatus(null);
-    }, 3000);
+    // Replace with your actual EmailJS service ID, template ID, and public key
+    emailjs.send(
+      'service_j7gvirj',
+      'template_4nwijoj',
+      templateParams,
+      'iMiin0OzjqYkPDzk9'
+    )
+    .then((response) => {
+      console.log('Email sent successfully!', response);
+      setSubmitStatus('success');
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+        setSubmitStatus(null);
+      }, 3000);
+    })
+    .catch((error) => {
+      console.error('Error sending email:', error);
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus(null), 3000);
+    })
+    .finally(() => {
+      setIsSubmitting(false);
+    });
+  };
+  
+  // Alternative direct contact option
+  const handleDirectContact = () => {
+    window.open('https://wa.me/919307983114', '_blank');
   };
   
   return (
@@ -125,9 +165,18 @@ export default function Contact() {
               
               <div className="mt-8 p-6 bg-indigo-600/10 rounded-lg">
                 <h4 className="font-medium mb-2">Current Status</h4>
-                <p className="text-gray-300">
+                <p className="text-gray-300 mb-4">
                   I'm currently open to new projects and opportunities in software engineering and AI/ML development.
                 </p>
+                <button
+                  onClick={handleDirectContact}
+                  className="w-full py-2 rounded-md text-white font-medium bg-green-600 hover:bg-green-700 transition-all duration-300 flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.498 14.382c-.301-.15-1.767-.867-2.04-.966-.273-.101-.473-.15-.673.15-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.174-.3-.019-.465.13-.615.136-.135.301-.345.451-.523.146-.181.194-.301.297-.496.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.172-.015-.371-.015-.571-.015-.2 0-.523.074-.797.359-.273.3-1.045 1.02-1.045 2.475s1.07 2.865 1.219 3.075c.149.195 2.105 3.195 5.1 4.485.714.3 1.27.48 1.704.629.714.227 1.365.195 1.88.121.574-.091 1.767-.721 2.016-1.426.255-.705.255-1.29.18-1.425-.074-.135-.27-.21-.57-.345m-5.446 7.443h-.016c-1.77 0-3.524-.48-5.055-1.38l-.36-.214-3.75.975 1.005-3.645-.239-.375c-.99-1.576-1.516-3.391-1.516-5.26 0-5.445 4.455-9.885 9.942-9.885 2.654 0 5.145 1.035 7.021 2.91 1.875 1.859 2.909 4.35 2.909 6.99-.004 5.444-4.46 9.885-9.935 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.24-6.165-3.495-8.411" />
+                  </svg>
+                  Message on WhatsApp
+                </button>
               </div>
             </div>
           </motion.div>
@@ -213,7 +262,7 @@ export default function Contact() {
                       disabled={isSubmitting}
                       className={`w-full py-3 rounded-md text-white font-medium transition-all duration-300 ${
                         isSubmitting 
-                          ? 'bg-gray-600 cursor-not-allowed' 
+                          ? 'bg-gray-500 cursor-not-allowed' 
                           : 'bg-indigo-600 hover:bg-indigo-700'
                       }`}
                     >
@@ -225,9 +274,19 @@ export default function Contact() {
               
               {submitStatus === 'success' && (
                 <div className="mt-4 p-3 bg-green-500/20 text-green-400 rounded-md">
-                  Your message has been sent successfully. I'll get back to you soon!
+                  Your message has been sent successfully! I'll get back to you soon.
                 </div>
               )}
+              
+              {submitStatus === 'error' && (
+                <div className="mt-4 p-3 bg-red-500/20 text-red-400 rounded-md">
+                  There was an error sending your message. Please try again or contact me directly.
+                </div>
+              )}
+              
+              <div className="mt-6 text-center text-sm text-gray-400">
+                <p>Or send an email directly to <a href="mailto:bonirohit@gmail.com" className="text-indigo-400 hover:underline">bonirohit@gmail.com</a></p>
+              </div>
             </div>
           </motion.div>
         </div>
