@@ -119,10 +119,10 @@ export const projects = [
     title: "AI-Powered Content Recommendation",
     description: "Machine learning system for content recommendations using NLP and vector embeddings to provide personalized user experiences with high accuracy.",
     images: [
-      "/projects/recommendation.jpg",
-      "/projects/recommendation-2.jpg",
-      "/projects/recommendation-3.jpg",
-      "/projects/recommendation-4.jpg"
+      "/ai_project/rag_search.jpg",
+      "/ai_project/rag_search1.jpg",
+      "/ai_project/rag_search2.jpg",
+      "/ai_project/rag_search3.jpg"
     ],
     category: "ai",
     features: [
