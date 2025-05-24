@@ -50,10 +50,11 @@ export const projects = [
     title: "Real-Time Analytics Platform",
     description: "High-throughput data analytics application built with Spring Boot for real-time insights with optimized database queries and comprehensive monitoring.",
     images: [
-      "/projects/analytics.jpg",
-      "/projects/analytics-2.jpg",
-      "/projects/analytics-3.jpg",
-      "/projects/analytics-4.jpg"
+      "/analytics/analy-1.png",
+      "/analytics/analy-2.png",
+      "/analytics/analy-3.png",
+      "/analytics/analy-4.png",
+      "/analytics/analy-5.png"
     ],
     category: "fullstack",
     features: [
