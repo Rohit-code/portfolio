@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Portfolio Website
 
-## Getting Started
+A modern, award-winning portfolio website built with Next.js, featuring smooth animations, custom cursor interactions, and a beautiful dark/light theme system.
 
-First, run the development server:
+## 🚀 Tech Stack
 
+- **Next.js 14** - React framework with SSR/SSG
+- **React 18** - UI library
+- **styled-components** - CSS-in-JS styling
+- **Framer Motion** - Professional animations
+- **Context API** - State management
+- **React Intersection Observer** - Scroll-based animations
+
+## ✨ Features
+
+- 🎨 **Dark/Light Theme** - Smooth theme switching with localStorage persistence
+- 🖱️ **Custom Cursor** - Interactive cursor with magnetic effects
+- 🎬 **Video Backgrounds** - Dynamic video content across sections
+- 📱 **Fully Responsive** - Optimized for all screen sizes
+- ⚡ **Smooth Animations** - Professional-grade motion design
+- 🎯 **Interactive Canvas** - Scratch-off reveal effect on hero section
+- 🎭 **Menu Animations** - Full-screen navigation with staggered animations
+
+## 📋 Project Structure
+
+```
+├── components/     # Reusable React components
+├── context/        # React Context providers (Theme, Cursor, Menu)
+├── hooks/          # Custom React hooks
+├── pages/          # Next.js pages and API routes
+├── public/         # Static assets (videos, fonts, images)
+├── styles/         # Global styles, themes, and shared styles
+└── utils/          # Utility functions and constants
+```
+
+## 💻 Getting Started
+
+### Prerequisites
+
+- Node.js 16+ installed
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Rohit-code/our_portfolio.git
+cd our_portfolio
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 🎯 Key Sections
 
-To learn more about Next.js, take a look at the following resources:
+1. **Banner** - Hero section with canvas eraser effect and video background
+2. **Content** - Company tagline and mission statement
+3. **Featured Projects** - Interactive project showcase with video previews
+4. **About** - Services accordion and team information
+5. **Contact** - Contact information and social media links
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 👥 Team
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Sahil Singaraju** - CEO
+- **Rohit Boni** - CTO
 
-## Deploy on Vercel
+## 📞 Contact
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Email:** sahil.singaraju1975@gmail.com
+- **Phone:** +91 94400 84959
+- **Location:** Chinna Waltair, Visakhapatnam, 530016
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Development
+
+The project uses:
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **Husky** for pre-commit hooks
+- **lint-staged** for staged files linting
+
+Code is automatically formatted and linted before each commit.
+
+## 📱 Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+---
+
+Built with 💙 by our team
