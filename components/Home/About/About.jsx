@@ -1,216 +1,179 @@
 import React from 'react';
-import items from '../../../utils/constants/services-items';
-import useCursorStyle from '../../../hooks/useCursorStyle';
-import AnimateOnScreen from '../../AnimateOnScreen';
-import {
-  ContentSection,
-  TextWrapper,
-  ServicesWrapper,
-  ServicesGrid,
-  ServiceCard,
-  ServiceIconWrapper,
-  ServiceIconSvg,
-  ServiceHeader,
-  ServiceTitle,
-  ServiceDescription,
-  ServiceList,
-  ServiceListItem,
-  TeamWrapper,
-  TeamGrid,
-  TeamMember,
-} from './styles';
+import { motion } from 'framer-motion';
+import styled from 'styled-components';
 
 const About = () => {
-  const [selectedItem, setSelectedItem] = React.useState(0);
-  const { addCursorBorder, removeCursorBorder } = useCursorStyle();
-
-  React.useEffect(() => {
-    console.log('📚 About: Component mounted');
-    console.log('📚 About: Services loaded', items);
-    return () => console.log('📚 About: Component unmounted');
-  }, []);
-
-  React.useEffect(() => {
-    console.log('📚 About: Selected service changed', { 
-      index: selectedItem, 
-      service: items[selectedItem]?.[0] 
-    });
-  }, [selectedItem]);
-
-  const handleMouseEnter = React.useCallback(
-    curr => {
-      console.log('👆 About: Mouse entered accordion', { index: curr, isSelected: curr === selectedItem });
-      if (curr === selectedItem) return;
-
-      addCursorBorder();
-    },
-    [selectedItem, addCursorBorder],
-  );
-
-  const handleMouseLeave = React.useCallback(
-    curr => {
-      console.log('👆 About: Mouse left accordion', { index: curr });
-      if (curr === selectedItem) return;
-
-      removeCursorBorder();
-    },
-    [selectedItem, removeCursorBorder],
-  );
-
-  const handleAccordionClick = React.useCallback((index) => {
-    console.log('🔘 About: Accordion clicked', { index, serviceName: items[index]?.[0] });
-    setSelectedItem(index);
-  }, []);
-
+  const features = [
+    { icon: '⚡', title: 'Lightning Fast', description: 'Optimized for peak performance' },
+    { icon: '🎨', title: 'Beautiful Design', description: 'Pixel-perfect interfaces' },
+    { icon: '🔒', title: 'Secure', description: 'Enterprise-grade security' },
+    { icon: '📱', title: 'Responsive', description: 'Works on all devices' },
+  ];
+  
   return (
-    <AnimateOnScreen>
-      <ContentSection>
-        <TextWrapper>
-          <h2>
-            We turn your vision into reality with powerful, scalable software
-            that drives real business results.
-          </h2>
-          <p>
-            Partner with a team that delivers excellence. From startups to
-            enterprises, we&apos;ve helped businesses scale with custom web applications,
-            intelligent mobile apps, and cutting-edge AI solutions. Our proven process
-            ensures your project launches on time, within budget, and exceeds expectations.
-          </p>
-          <p style={{ marginTop: '20px', fontWeight: '600', color: 'inherit', opacity: '1' }}>
-            Ready to accelerate your digital transformation? Let&apos;s build something
-            extraordinary together.
-          </p>
-          <TeamWrapper>
-            <h3>Team</h3>
-            <TeamGrid>
-            <TeamMember>
-              <h4>Sahil Singaraju</h4>
-              <p>CEO - Chief Executive Officer</p>
-            </TeamMember>
-            <TeamMember>
-              <h4>Rohit Boni</h4>
-              <p>CTO - Chief Technology Officer</p>
-            </TeamMember>
-            </TeamGrid>
-          </TeamWrapper>
-        </TextWrapper>
-        <ServicesWrapper>
-          <h3>Our Services</h3>
-          <p>
-            Enterprise-grade solutions engineered for growth, scalability, and lasting impact.
-          </p>
-          <ServicesGrid>
-            <ServiceCard
-              role="article"
-              aria-labelledby="service-web-title"
-              onMouseEnter={() => {
-                console.log('🖱️ About: Service card hovered - Web Development');
-                addCursorBorder();
-              }}
-              onMouseLeave={() => {
-                console.log('🖱️ About: Service card left');
-                removeCursorBorder();
-              }}
+    <Section id="about">
+      <Container>
+        <Grid>
+          <Visual>
+            <GlowCard
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <ServiceIconWrapper>
-                <ServiceIconSvg>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
-                </ServiceIconSvg>
-              </ServiceIconWrapper>
-              <ServiceHeader>
-                <ServiceTitle id="service-web-title">Web Development</ServiceTitle>
-                <ServiceDescription>
-                  Custom web solutions from responsive websites to complex web applications.
-                </ServiceDescription>
-              </ServiceHeader>
-              <ServiceList>
-                <ServiceListItem>Custom Website Development</ServiceListItem>
-                <ServiceListItem>Web Application Platforms</ServiceListItem>
-                <ServiceListItem>Frontend & Backend Development</ServiceListItem>
-                <ServiceListItem>API Development & Integration</ServiceListItem>
-                <ServiceListItem>Maintenance & Support</ServiceListItem>
-              </ServiceList>
-            </ServiceCard>
-
-            <ServiceCard
-              role="article"
-              aria-labelledby="service-app-title"
-              onMouseEnter={() => {
-                console.log('🖱️ About: Service card hovered - App Development');
-                addCursorBorder();
-              }}
-              onMouseLeave={() => {
-                console.log('🖱️ About: Service card left');
-                removeCursorBorder();
-              }}
+              <IconBadge>⭐</IconBadge>
+              <CardText>Building the future, one pixel at a time.</CardText>
+            </GlowCard>
+          </Visual>
+          
+          <Content>
+            <Heading
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <ServiceIconWrapper>
-                <ServiceIconSvg>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="2" width="14" height="20" rx="2" />
-                    <line x1="12" y1="18" x2="12.01" y2="18" />
-                  </svg>
-                </ServiceIconSvg>
-              </ServiceIconWrapper>
-              <ServiceHeader>
-                <ServiceTitle id="service-app-title">App Development</ServiceTitle>
-                <ServiceDescription>
-                  Native and cross-platform mobile applications with seamless user experiences.
-                </ServiceDescription>
-              </ServiceHeader>
-              <ServiceList>
-                <ServiceListItem>Native iOS & Android Apps</ServiceListItem>
-                <ServiceListItem>Cross-platform Development</ServiceListItem>
-                <ServiceListItem>Backend & Cloud Integration</ServiceListItem>
-                <ServiceListItem>App Store Optimization</ServiceListItem>
-                <ServiceListItem>Performance Monitoring</ServiceListItem>
-              </ServiceList>
-            </ServiceCard>
-
-            <ServiceCard
-              role="article"
-              aria-labelledby="service-ai-title"
-              onMouseEnter={() => {
-                console.log('🖱️ About: Service card hovered - AI Services');
-                addCursorBorder();
-              }}
-              onMouseLeave={() => {
-                console.log('🖱️ About: Service card left');
-                removeCursorBorder();
-              }}
-            >
-              <ServiceIconWrapper>
-                <ServiceIconSvg>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                    <path d="M2 17l10 5 10-5" />
-                    <path d="M2 12l10 5 10-5" />
-                  </svg>
-                </ServiceIconSvg>
-              </ServiceIconWrapper>
-              <ServiceHeader>
-                <ServiceTitle id="service-ai-title">AI Services</ServiceTitle>
-                <ServiceDescription>
-                  Intelligent solutions powered by machine learning and advanced AI technologies.
-                </ServiceDescription>
-              </ServiceHeader>
-              <ServiceList>
-                <ServiceListItem>Machine Learning Solutions</ServiceListItem>
-                <ServiceListItem>Natural Language Processing</ServiceListItem>
-                <ServiceListItem>Computer Vision Systems</ServiceListItem>
-                <ServiceListItem>Predictive Analytics</ServiceListItem>
-                <ServiceListItem>AI Chatbots & Assistants</ServiceListItem>
-              </ServiceList>
-            </ServiceCard>
-          </ServicesGrid>
-        </ServicesWrapper>
-      </ContentSection>
-    </AnimateOnScreen>
+              We turn ambitious ideas into <GradientText>exceptional products</GradientText>
+            </Heading>
+            
+            <FeatureGrid>
+              {features.map((feature, i) => (
+                <FeatureCard
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                  whileHover={{ y: -4, borderColor: 'rgba(139, 92, 246, 0.6)' }}
+                >
+                  <FeatureIcon>{feature.icon}</FeatureIcon>
+                  <FeatureTitle>{feature.title}</FeatureTitle>
+                  <FeatureDescription>{feature.description}</FeatureDescription>
+                </FeatureCard>
+              ))}
+            </FeatureGrid>
+          </Content>
+        </Grid>
+      </Container>
+    </Section>
   );
 };
 
-export default React.memo(About);
+const Section = styled.section`
+  position: relative;
+  padding: clamp(80px, 12vw, 160px) 0;
+  background: ${({ theme }) => theme.background};
+`;
+
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+`;
+
+const Visual = styled.div``;
+
+const GlowCard = styled(motion.div)`
+  position: relative;
+  padding: 60px 40px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 24px;
+  text-align: center;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${({ theme }) => theme.gradient.cardGlow};
+    opacity: 0.5;
+  }
+`;
+
+const IconBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  background: ${({ theme }) => theme.gradient.buttonPrimary};
+  border-radius: 20px;
+  font-size: 2rem;
+`;
+
+const CardText = styled.p`
+  position: relative;
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text.primary};
+  line-height: 1.6;
+`;
+
+const Content = styled.div``;
+
+const Heading = styled(motion.h2)`
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 48px;
+`;
+
+const GradientText = styled.span`
+  background: ${({ theme }) => theme.gradient.textAccent};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const FeatureGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const FeatureCard = styled(motion.div)`
+  padding: 24px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  transition: border-color 0.3s ease;
+`;
+
+const FeatureIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 12px;
+`;
+
+const FeatureTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 6px;
+`;
+
+const FeatureDescription = styled.p`
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.text.tertiary};
+`;
+
+export default About;
+

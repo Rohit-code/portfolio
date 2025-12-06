@@ -1,60 +1,117 @@
+// OBSIDIAN LUXE - Ultra Premium Color System
+// Inspired by: Apple, Linear, Vercel, Stripe
+
 const colors = {
-  // Professional base colors
+  // Core Palette
   white: '#FFFFFF',
   black: '#000000',
-  richBlack: '#0A0A0A',
   
-  // Sophisticated Navy palette (Main brand color)
-  navy: '#1B2B4E', // Deep professional navy
-  navyDark: '#0F1A33', // Rich midnight navy
-  navyLight: '#2D4373', // Lighter navy
-  slate: '#334E68', // Sophisticated slate blue
-  
-  // Platinum/Silver luxury accents
-  platinum: '#E8E8E8', // Soft platinum
-  silver: '#C0C0C0', // Classic silver
-  lightGray: '#F5F6F7', // Premium light gray
-  mediumGray: '#8B93A7', // Professional gray
-  
-  // Emerald/Teal complementary accent (Professional luxury)
-  emerald: '#10B981', // Rich emerald green
-  emeraldDark: '#059669', // Deep emerald
-  emeraldLight: '#34D399', // Light emerald
-  teal: '#14B8A6', // Sophisticated teal
-  
-  // Professional primary colors
-  primary: '#1B2B4E', // Navy - professional and trustworthy
-  primaryDark: '#0F1A33', // Darker navy
-  primaryLight: '#2D4373', // Lighter navy
-  
-  // Luxury accent colors
-  accent: '#10B981', // Emerald - growth and success
-  accentDark: '#059669', // Deep emerald
-  accentLight: '#34D399', // Light emerald
-  
-  // Sophisticated secondary colors
-  secondary: '#14B8A6', // Teal - innovation
-  secondaryDark: '#0D9488', // Deep teal
-  secondaryLight: '#2DD4BF', // Light teal
-  
-  // Professional complimentary
-  charcoal: '#2D3748', // Rich charcoal
-  cream: '#FAFAF9', // Warm cream white
-  steel: '#64748B', // Steel blue-gray
-  
-  // Sophisticated gradients
-  gradient: {
-    primary: 'linear-gradient(135deg, #1B2B4E 0%, #2D4373 100%)',
-    accent: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)',
-    luxury: 'linear-gradient(135deg, #0F1A33 0%, #1B2B4E 50%, #2D4373 100%)',
-    emerald: 'linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%)',
-    platinum: 'linear-gradient(135deg, #F5F6F7 0%, #E8E8E8 50%, #C0C0C0 100%)',
-    professional: 'linear-gradient(135deg, #1B2B4E 0%, #10B981 100%)',
-    shimmer: 'linear-gradient(90deg, #10B981 0%, #34D399 25%, #14B8A6 50%, #34D399 75%, #10B981 100%)',
+  // Obsidian Backgrounds (Deep, Rich, Layered)
+  obsidian: {
+    void: '#030303',      // Deepest black
+    deep: '#080808',      // Primary background
+    base: '#0C0C0C',      // Card backgrounds
+    elevated: '#121212',  // Elevated surfaces
+    subtle: '#1A1A1A',    // Subtle highlights
+    muted: '#252525',     // Borders, dividers
   },
   
-  // Backward compatibility
-  red: '#1B2B4E',
+  // Aurora Accents (Ethereal, Premium)
+  aurora: {
+    violet: '#8B5CF6',      // Primary accent
+    indigo: '#6366F1',      // Secondary
+    cyan: '#06B6D4',        // Tertiary
+    emerald: '#10B981',     // Success
+    rose: '#F43F5E',        // Attention
+    amber: '#F59E0B',       // Warning
+    pearl: '#E2E8F0',       // Light accent
+  },
+  
+  // Gradient Presets (Cinematic)
+  gradient: {
+    // Hero gradients
+    heroMesh: `
+      radial-gradient(at 40% 20%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%)
+    `,
+    // Text gradients
+    textPrimary: 'linear-gradient(135deg, #FFFFFF 0%, #A1A1AA 100%)',
+    textAccent: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 50%, #10B981 100%)',
+    textGlow: 'linear-gradient(135deg, #E2E8F0 0%, #8B5CF6 50%, #06B6D4 100%)',
+    // Button gradients
+    buttonPrimary: 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)',
+    buttonHover: 'linear-gradient(135deg, #9D7AFA 0%, #818CF8 100%)',
+    buttonGlow: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(99, 102, 241, 0.4) 100%)',
+    // Card gradients
+    cardBorder: 'linear-gradient(135deg, rgba(139, 92, 246, 0.5) 0%, rgba(6, 182, 212, 0.3) 50%, rgba(16, 185, 129, 0.2) 100%)',
+    cardGlow: 'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+    // Mesh gradients for sections
+    meshViolet: `
+      radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%)
+    `,
+    meshCyan: `
+      radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%)
+    `,
+  },
+  
+  // Text Colors (Precise Hierarchy)
+  text: {
+    primary: '#FAFAFA',     // Headlines, important
+    secondary: '#A1A1AA',   // Body text
+    tertiary: '#71717A',    // Captions, labels
+    muted: '#52525B',       // Disabled, hints
+    inverse: '#0C0C0C',     // On light backgrounds
+  },
+  
+  // Border & Divider System
+  border: {
+    subtle: 'rgba(255, 255, 255, 0.06)',
+    default: 'rgba(255, 255, 255, 0.1)',
+    strong: 'rgba(255, 255, 255, 0.15)',
+    accent: 'rgba(139, 92, 246, 0.4)',
+    glow: 'rgba(139, 92, 246, 0.6)',
+  },
+  
+  // Shadow System (Depth & Dimension)
+  shadow: {
+    sm: '0 2px 8px rgba(0, 0, 0, 0.3)',
+    md: '0 4px 16px rgba(0, 0, 0, 0.4)',
+    lg: '0 8px 32px rgba(0, 0, 0, 0.5)',
+    xl: '0 16px 64px rgba(0, 0, 0, 0.6)',
+    glow: '0 0 40px rgba(139, 92, 246, 0.3)',
+    glowStrong: '0 0 80px rgba(139, 92, 246, 0.4)',
+    glowCyan: '0 0 60px rgba(6, 182, 212, 0.25)',
+    inner: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+  },
+  
+  // Glass Effects
+  glass: {
+    background: 'rgba(12, 12, 12, 0.8)',
+    bgStrong: 'rgba(12, 12, 12, 0.95)',
+    border: 'rgba(255, 255, 255, 0.08)',
+    blur: '20px',
+  },
+  
+  // State Colors
+  state: {
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+  },
+  
+  // Legacy support
+  neonCyan: '#06B6D4',
+  neonMagenta: '#EC4899',
+  electricBlue: '#3B82F6',
+  emerald: '#10B981',
+  red: '#EF4444',
 };
 
 export default colors;
+

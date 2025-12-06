@@ -1,112 +1,173 @@
-# Portfolio Website
+# Obsidian Luxe Portfolio
 
-A modern, award-winning portfolio website built with Next.js, featuring smooth animations, custom cursor interactions, and a beautiful dark/light theme system.
-
-## 🚀 Tech Stack
-
-- **Next.js 14** - React framework with SSR/SSG
-- **React 18** - UI library
-- **styled-components** - CSS-in-JS styling
-- **Framer Motion** - Professional animations
-- **Context API** - State management
-- **React Intersection Observer** - Scroll-based animations
+A premium, dark-themed portfolio website built with Next.js 16, featuring stunning WebGL effects, smooth scrolling, and modern UI components.
 
 ## ✨ Features
 
-- 🎨 **Dark/Light Theme** - Smooth theme switching with localStorage persistence
-- 🖱️ **Custom Cursor** - Interactive cursor with magnetic effects
-- 🎬 **Video Backgrounds** - Dynamic video content across sections
-- 📱 **Fully Responsive** - Optimized for all screen sizes
-- ⚡ **Smooth Animations** - Professional-grade motion design
-- 🎯 **Interactive Canvas** - Scratch-off reveal effect on hero section
-- 🎭 **Menu Animations** - Full-screen navigation with staggered animations
+- **Obsidian Dark Theme** - Deep, rich color palette with aurora accent colors
+- **Custom Cursor** - Multi-layered cursor with spring physics (desktop only)
+- **WebGL Hero Scene** - Floating orbs and particles with Three.js
+- **Smooth Scrolling** - Buttery smooth scroll experience powered by Lenis
+- **Glass Morphism** - Modern frosted glass effects throughout
+- **Scroll Animations** - Framer Motion powered reveal animations
+- **Responsive Design** - Fully responsive with mobile-first approach
+- **Premium Typography** - Inter and Satoshi font families
 
-## 📋 Project Structure
+## 🎨 Sections
 
-```
-├── components/     # Reusable React components
-├── context/        # React Context providers (Theme, Cursor, Menu)
-├── hooks/          # Custom React hooks
-├── pages/          # Next.js pages and API routes
-├── public/         # Static assets (videos, fonts, images)
-├── styles/         # Global styles, themes, and shared styles
-└── utils/          # Utility functions and constants
-```
+1. **Hero/Banner** - Full-viewport hero with animated text and WebGL background
+2. **About** - Feature cards and company introduction
+3. **Services** - Interactive tabbed interface showcasing offerings
+4. **Work/Portfolio** - Project showcase with stats and case studies
+5. **Contact** - Glassmorphic contact form with social links
+6. **Footer** - Comprehensive footer with links and branding
 
-## 💻 Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 16+ installed
+- Node.js 18+ installed
 - npm or yarn package manager
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Rohit-code/our_portfolio.git
-cd our_portfolio
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
 ```
 
-3. Run the development server:
+2. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### Build for Production
 
 ```bash
 npm run build
-npm start
+npm run start
 ```
 
-## 🎯 Key Sections
+## 🛠️ Tech Stack
 
-1. **Banner** - Hero section with canvas eraser effect and video background
-2. **Content** - Company tagline and mission statement
-3. **Featured Projects** - Interactive project showcase with video previews
-4. **About** - Services accordion and team information
-5. **Contact** - Contact information and social media links
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Styled Components
+- **Animations**: Framer Motion
+- **3D Graphics**: Three.js, React Three Fiber, Drei
+- **Smooth Scroll**: Lenis
+- **Language**: JavaScript (JSX)
 
-## 👥 Team
+## 📦 Dependencies
 
-- **Sahil Singaraju** - CEO
-- **Rohit Boni** - CTO
+```json
+{
+  "next": "16.0.7",
+  "react": "19.2.0",
+  "react-dom": "19.2.0",
+  "styled-components": "latest",
+  "framer-motion": "latest",
+  "lenis": "latest",
+  "three": "latest",
+  "@react-three/fiber": "latest",
+  "@react-three/drei": "latest"
+}
+```
 
-## 📞 Contact
+## 🎯 Color System
 
-- **Email:** sahil.singaraju1975@gmail.com
-- **Phone:** +91 94400 84959
-- **Location:** Chinna Waltair, Visakhapatnam, 530016
+### Obsidian Backgrounds
+- `void`: #030303 - Deepest black
+- `deep`: #080808 - Primary background  
+- `base`: #0C0C0C - Card backgrounds
+- `elevated`: #121212 - Elevated surfaces
 
-## 🛠️ Development
+### Aurora Accents
+- `violet`: #8B5CF6 - Primary accent
+- `indigo`: #6366F1 - Secondary
+- `cyan`: #06B6D4 - Tertiary
+- `emerald`: #10B981 - Success
 
-The project uses:
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Husky** for pre-commit hooks
-- **lint-staged** for staged files linting
+## 📁 Project Structure
 
-Code is automatically formatted and linted before each commit.
+```
+nextjs-project/
+├── app/
+│   ├── layout.jsx          # Root layout with providers
+│   ├── page.jsx            # Main page
+│   └── registry.jsx        # Styled Components registry
+├── components/
+│   ├── Cursor/             # Custom cursor component
+│   ├── Navigation/         # Header navigation
+│   ├── SmoothScroll/       # Lenis wrapper
+│   ├── WebGL/              # Three.js scenes
+│   └── Home/               # Page sections
+│       ├── Banner/
+│       ├── About/
+│       ├── Services/
+│       ├── Work/
+│       ├── Contact/
+│       └── Footer/
+├── context/
+│   ├── theme.js            # Theme provider
+│   ├── menu.js             # Menu state
+│   └── cursor.js           # Cursor state
+├── styles/
+│   ├── colors.js           # Color system
+│   ├── global.js           # Global styles
+│   └── themes/
+│       └── dark.js         # Dark theme config
+└── next.config.mjs         # Next.js configuration
+```
 
-## 📱 Browser Support
+## 🎨 Customization
 
-- Chrome (latest)
+### Changing Colors
+
+Edit `styles/colors.js` to customize the color palette.
+
+### Modifying Content
+
+- **Hero Text**: Edit `components/Home/Banner/Banner.jsx`
+- **Services**: Update the `services` array in `components/Home/Services/Services.jsx`
+- **Projects**: Modify the `projects` array in `components/Home/Work/Work.jsx`
+- **Contact Info**: Edit contact details in `components/Home/Contact/Contact.jsx`
+
+### Adjusting Animations
+
+All animations use Framer Motion. Adjust timing and easing in individual components by modifying the `transition` props.
+
+## 🌐 Browser Support
+
+- Chrome/Edge (latest)
 - Firefox (latest)
 - Safari (latest)
-- Edge (latest)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## 📱 Responsive Breakpoints
+
+- Mobile: < 600px
+- Tablet: 600px - 900px
+- Desktop: > 900px
+
+## ⚡ Performance
+
+- WebGL effects are lazy-loaded
+- Images and assets are optimized
+- Smooth scroll is optimized with requestAnimationFrame
+- Custom cursor is disabled on touch devices
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 🙏 Credits
+
+- Design inspired by Apple, Linear, Vercel, and Stripe
+- Fonts: Inter (Google Fonts), Satoshi (fallback)
+- Icons: Unicode emojis for simplicity
 
 ---
 
-Built with 💙 by our team
+**Built with ❤️ using Next.js and modern web technologies**

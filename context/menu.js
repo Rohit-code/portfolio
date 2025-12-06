@@ -1,48 +1,35 @@
-/* eslint-disable react/jsx-filename-extension */
-import React from 'react';
+import React, { createContext, useContext, useReducer } from 'react';
 
-export const INITIAL_STATE = {
-  isMenuOpen: false,
-};
+const MenuContext = createContext();
 
-const rootReducer = (state, action) => {
-  console.log('📋 Menu Context: Action dispatched', { type: action.type, currentState: state });
-  
+const menuReducer = (state, action) => {
   switch (action.type) {
-    case 'TOGGLE_MENU': {
-      const newState = !state.isMenuOpen;
-      console.log(`📋 Menu: ${newState ? 'Opening' : 'Closing'} menu`);
-      return {
-        ...state,
-        isMenuOpen: newState,
-      };
-    }
-    default: {
-      console.log('⚠️ Menu: Unknown action type', action.type);
+    case 'TOGGLE_MENU':
+      return { ...state, isOpen: !state.isOpen };
+    case 'OPEN_MENU':
+      return { ...state, isOpen: true };
+    case 'CLOSE_MENU':
+      return { ...state, isOpen: false };
+    default:
       return state;
-    }
   }
 };
 
-export const MenuContext = React.createContext();
+export const MenuProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(menuReducer, { isOpen: false });
 
-export const MenuContextProvider = ({ children }) => {
-  const [state, dispatch] = React.useReducer(rootReducer, INITIAL_STATE);
-  const store = React.useMemo(() => ({ state, dispatch }), [state]);
-  
-  React.useEffect(() => {
-    console.log('📋 Menu Context: Provider mounted');
-    return () => console.log('📋 Menu Context: Provider unmounted');
-  }, []);
-
-  React.useEffect(() => {
-    console.log('📋 Menu Context: State updated', state);
-  }, [state]);
-
-  return <MenuContext.Provider value={store}>{children}</MenuContext.Provider>;
+  return (
+    <MenuContext.Provider value={[state, dispatch]}>
+      {children}
+    </MenuContext.Provider>
+  );
 };
 
 export const useMenuContext = () => {
-  const { state, dispatch } = React.useContext(MenuContext);
-  return [state, dispatch];
+  const context = useContext(MenuContext);
+  if (!context) {
+    throw new Error('useMenuContext must be used within MenuProvider');
+  }
+  return context;
 };
+

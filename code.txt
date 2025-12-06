@@ -1,0 +1,2195 @@
+components/WebGL/AdvancedHeroScene.jsx
+
+import React, { useRef, useEffect, useMemo } from 'react';
+import * as THREE from 'three';
+
+const AdvancedHeroScene = () => {
+  const containerRef = useRef(null);
+  const mouseRef = useRef({ x: 0.5, y: 0.5 });
+  const targetRotation = useRef({ x: 0, y: 0 });
+  
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    let { width, height } = container.getBoundingClientRect();
+    
+    // Scene
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x080808, 0.015);
+    
+    // Camera
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.z = 50;
+    
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    container.appendChild(renderer.domElement);
+    
+    // === FLOATING 3D TORUS KNOT (Central Element) ===
+    const torusKnotGeometry = new THREE.TorusKnotGeometry(8, 2.5, 200, 32);
+    const torusKnotMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+        uColor1: { value: new THREE.Color('#8B5CF6') },
+        uColor2: { value: new THREE.Color('#06B6D4') },
+        uColor3: { value: new THREE.Color('#10B981') },
+      },
+      vertexShader: `
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        uniform float uTime;
+        
+        void main() {
+          vPosition = position;
+          vNormal = normalize(normalMatrix * normal);
+          vUv = uv;
+          
+          vec3 pos = position;
+          float displacement = sin(pos.x * 0.5 + uTime) * sin(pos.y * 0.5 + uTime) * 0.3;
+          pos += normal * displacement;
+          
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec2 uMouse;
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
+        uniform vec3 uColor3;
+        
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        
+        void main() {
+          // Fresnel effect
+          vec3 viewDirection = normalize(cameraPosition - vPosition);
+          float fresnel = pow(1.0 - max(dot(viewDirection, vNormal), 0.0), 3.0);
+          
+          // Animated gradient
+          float t = sin(vPosition.x * 0.1 + uTime * 0.5) * 0.5 + 0.5;
+          float t2 = cos(vPosition.y * 0.1 + uTime * 0.3) * 0.5 + 0.5;
+          
+          vec3 color = mix(uColor1, uColor2, t);
+          color = mix(color, uColor3, t2 * 0.5);
+          
+          // Add fresnel glow
+          color += fresnel * uColor1 * 0.8;
+          
+          // Edge glow
+          float edge = 1.0 - abs(dot(viewDirection, vNormal));
+          color += edge * uColor2 * 0.3;
+          
+          float alpha = 0.6 + fresnel * 0.4;
+          
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    
+    const torusKnot = new THREE.Mesh(torusKnotGeometry, torusKnotMaterial);
+    torusKnot.position.set(25, 0, -20);
+    scene.add(torusKnot);
+    
+    // === WIREFRAME ICOSAHEDRON ===
+    const icoGeometry = new THREE.IcosahedronGeometry(12, 1);
+    const icoWireframe = new THREE.WireframeGeometry(icoGeometry);
+    const icoMaterial = new THREE.LineBasicMaterial({
+      color: 0x8B5CF6,
+      transparent: true,
+      opacity: 0.3,
+    });
+    const icoLines = new THREE.LineSegments(icoWireframe, icoMaterial);
+    icoLines.position.set(-30, 10, -30);
+    scene.add(icoLines);
+    
+    // === FLOATING GEOMETRIC SHAPES ===
+    const shapes = [];
+    const shapeGeometries = [
+      new THREE.OctahedronGeometry(2),
+      new THREE.TetrahedronGeometry(2.5),
+      new THREE.IcosahedronGeometry(1.8),
+      new THREE.DodecahedronGeometry(2),
+    ];
+    
+    for (let i = 0; i < 20; i++) {
+      const geometry = shapeGeometries[i % shapeGeometries.length];
+      const material = new THREE.MeshBasicMaterial({
+        color: i % 3 === 0 ? 0x8B5CF6 : i % 3 === 1 ? 0x06B6D4 : 0x10B981,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.4 + Math.random() * 0.3,
+      });
+      
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(
+        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 60,
+        (Math.random() - 0.5) * 40 - 20
+      );
+      mesh.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      mesh.userData = {
+        rotationSpeed: {
+          x: (Math.random() - 0.5) * 0.02,
+          y: (Math.random() - 0.5) * 0.02,
+          z: (Math.random() - 0.5) * 0.02,
+        },
+        floatSpeed: 0.5 + Math.random() * 1,
+        floatOffset: Math.random() * Math.PI * 2,
+        originalY: mesh.position.y,
+      };
+      
+      shapes.push(mesh);
+      scene.add(mesh);
+    }
+    
+    // === PARTICLE GALAXY ===
+    const galaxyCount = 3000;
+    const galaxyGeometry = new THREE.BufferGeometry();
+    const galaxyPositions = new Float32Array(galaxyCount * 3);
+    const galaxyColors = new Float32Array(galaxyCount * 3);
+    const galaxySizes = new Float32Array(galaxyCount);
+    
+    const colorInside = new THREE.Color('#8B5CF6');
+    const colorOutside = new THREE.Color('#06B6D4');
+    
+    for (let i = 0; i < galaxyCount; i++) {
+      const i3 = i * 3;
+      const radius = Math.random() * 50 + 5;
+      const spinAngle = radius * 0.5;
+      const branchAngle = ((i % 3) / 3) * Math.PI * 2;
+      
+      const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
+      const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
+      const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
+      
+      galaxyPositions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+      galaxyPositions[i3 + 1] = randomY;
+      galaxyPositions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ - 30;
+      
+      const mixedColor = colorInside.clone();
+      mixedColor.lerp(colorOutside, radius / 55);
+      
+      galaxyColors[i3] = mixedColor.r;
+      galaxyColors[i3 + 1] = mixedColor.g;
+      galaxyColors[i3 + 2] = mixedColor.b;
+      
+      galaxySizes[i] = Math.random() * 2 + 0.5;
+    }
+    
+    galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
+    galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
+    galaxyGeometry.setAttribute('size', new THREE.BufferAttribute(galaxySizes, 1));
+    
+    const galaxyMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uPixelRatio: { value: renderer.getPixelRatio() },
+      },
+      vertexShader: `
+        attribute float size;
+        varying vec3 vColor;
+        uniform float uTime;
+        uniform float uPixelRatio;
+        
+        void main() {
+          vColor = color;
+          vec3 pos = position;
+          
+          float angle = uTime * 0.1;
+          float s = sin(angle);
+          float c = cos(angle);
+          pos.xz = mat2(c, -s, s, c) * pos.xz;
+          
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          gl_PointSize = size * uPixelRatio * (30.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          if (d > 0.5) discard;
+          
+          float alpha = 1.0 - smoothstep(0.0, 0.5, d);
+          alpha *= 0.8;
+          
+          gl_FragColor = vec4(vColor, alpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true,
+    });
+    
+    const galaxy = new THREE.Points(galaxyGeometry, galaxyMaterial);
+    galaxy.position.set(0, -10, 0);
+    scene.add(galaxy);
+    
+    // === GLOWING RING ===
+    const ringGeometry = new THREE.TorusGeometry(20, 0.3, 16, 100);
+    const ringMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color('#8B5CF6') },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec3 uColor;
+        varying vec2 vUv;
+        
+        void main() {
+          float pulse = sin(vUv.x * 20.0 + uTime * 3.0) * 0.5 + 0.5;
+          float alpha = 0.3 + pulse * 0.4;
+          gl_FragColor = vec4(uColor, alpha);
+        }
+      `,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+    
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.PI * 0.5;
+    ring.position.set(25, 0, -20);
+    scene.add(ring);
+    
+    // === FLOATING LIGHT ORBS ===
+    const orbGroup = new THREE.Group();
+    for (let i = 0; i < 8; i++) {
+      const orbGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+      const orbMaterial = new THREE.MeshBasicMaterial({
+        color: i % 2 === 0 ? 0x8B5CF6 : 0x06B6D4,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+      
+      const angle = (i / 8) * Math.PI * 2;
+      const radius = 25;
+      orb.position.set(
+        Math.cos(angle) * radius + 25,
+        Math.sin(angle) * 5,
+        Math.sin(angle) * radius - 20
+      );
+      orb.userData = { angle, radius, speed: 0.3 + Math.random() * 0.2 };
+      orbGroup.add(orb);
+    }
+    scene.add(orbGroup);
+    
+    // === MOUSE HANDLING ===
+    const handleMouseMove = (e) => {
+      mouseRef.current.x = e.clientX / width;
+      mouseRef.current.y = 1 - e.clientY / height;
+      targetRotation.current.y = (mouseRef.current.x - 0.5) * 0.5;
+      targetRotation.current.x = (mouseRef.current.y - 0.5) * 0.3;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    // === ANIMATION LOOP ===
+    let animationId;
+    const clock = new THREE.Clock();
+    
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+      
+      // Update uniforms
+      torusKnotMaterial.uniforms.uTime.value = elapsed;
+      torusKnotMaterial.uniforms.uMouse.value.set(mouseRef.current.x, mouseRef.current.y);
+      galaxyMaterial.uniforms.uTime.value = elapsed;
+      ringMaterial.uniforms.uTime.value = elapsed;
+      
+      // Rotate torus knot
+      torusKnot.rotation.x = elapsed * 0.1 + targetRotation.current.x;
+      torusKnot.rotation.y = elapsed * 0.15 + targetRotation.current.y;
+      
+      // Rotate icosahedron
+      icoLines.rotation.x = elapsed * 0.1;
+      icoLines.rotation.y = elapsed * 0.15;
+      
+      // Animate floating shapes
+      shapes.forEach((shape) => {
+        const { rotationSpeed, floatSpeed, floatOffset, originalY } = shape.userData;
+        shape.rotation.x += rotationSpeed.x;
+        shape.rotation.y += rotationSpeed.y;
+        shape.rotation.z += rotationSpeed.z;
+        shape.position.y = originalY + Math.sin(elapsed * floatSpeed + floatOffset) * 2;
+      });
+      
+      // Animate ring
+      ring.rotation.z = elapsed * 0.2;
+      
+      // Animate orbs
+      orbGroup.children.forEach((orb, i) => {
+        const { angle, radius, speed } = orb.userData;
+        orb.position.x = Math.cos(angle + elapsed * speed) * radius + 25;
+        orb.position.z = Math.sin(angle + elapsed * speed) * radius - 20;
+        orb.position.y = Math.sin(elapsed * 2 + i) * 3;
+      });
+      
+      // Camera follow mouse
+      camera.position.x += (targetRotation.current.y * 10 - camera.position.x) * 0.02;
+      camera.position.y += (targetRotation.current.x * 10 - camera.position.y) * 0.02;
+      camera.lookAt(0, 0, -20);
+      
+      renderer.render(scene, camera);
+    };
+    animate();
+    
+    // === RESIZE ===
+    const handleResize = () => {
+      const { width: w, height: h } = container.getBoundingClientRect();
+      width = w;
+      height = h;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+      container.removeChild(renderer.domElement);
+      renderer.dispose();
+    };
+  }, []);
+  
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+      }}
+    />
+  );
+};
+
+export default AdvancedHeroScene;
+
+components/Home/DataScraping/DataScraping.jsx
+
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import styled from 'styled-components';
+
+const DataScraping = () => {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const [activeDemo, setActiveDemo] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [extractedData, setExtractedData] = useState([]);
+  
+  const demos = [
+    {
+      title: 'E-Commerce Scraping',
+      description: 'Extract product data, prices, reviews, and inventory levels from any e-commerce platform.',
+      icon: '🛒',
+      color: '#8B5CF6',
+      mockData: [
+        { field: 'Product Name', value: 'MacBook Pro 16"' },
+        { field: 'Price', value: '$2,499.00' },
+        { field: 'Rating', value: '4.8 ★ (2,340 reviews)' },
+        { field: 'Stock Status', value: 'In Stock' },
+        { field: 'Seller', value: 'Apple Official Store' },
+      ],
+    },
+    {
+      title: 'Social Media Analytics',
+      description: 'Gather engagement metrics, follower data, and content performance across platforms.',
+      icon: '📱',
+      color: '#06B6D4',
+      mockData: [
+        { field: 'Followers', value: '1.2M' },
+        { field: 'Engagement Rate', value: '4.7%' },
+        { field: 'Avg. Likes', value: '45,230' },
+        { field: 'Post Frequency', value: '2.3/day' },
+        { field: 'Top Hashtags', value: '#tech, #innovation' },
+      ],
+    },
+    {
+      title: 'Real Estate Data',
+      description: 'Collect property listings, prices, amenities, and market trends automatically.',
+      icon: '🏠',
+      color: '#10B981',
+      mockData: [
+        { field: 'Property Type', value: '3BR Apartment' },
+        { field: 'Price', value: '$450,000' },
+        { field: 'Location', value: 'San Francisco, CA' },
+        { field: 'Sq. Footage', value: '1,850 sq ft' },
+        { field: 'Listed', value: '3 days ago' },
+      ],
+    },
+    {
+      title: 'Job Market Intelligence',
+      description: 'Monitor job postings, salary ranges, and hiring trends across industries.',
+      icon: '💼',
+      color: '#F59E0B',
+      mockData: [
+        { field: 'Position', value: 'Senior Developer' },
+        { field: 'Salary Range', value: '$150K - $200K' },
+        { field: 'Company', value: 'Tech Startup Inc.' },
+        { field: 'Remote', value: 'Hybrid Available' },
+        { field: 'Posted', value: '2 hours ago' },
+      ],
+    },
+  ];
+  
+  const features = [
+    { icon: '⚡', title: 'Real-Time Extraction', desc: 'Live data updates every minute' },
+    { icon: '🔄', title: 'Auto-Scheduling', desc: 'Automated recurring scrapes' },
+    { icon: '🛡️', title: 'Anti-Detection', desc: 'Rotating proxies & fingerprints' },
+    { icon: '📊', title: 'Data Cleaning', desc: 'Automatic formatting & validation' },
+    { icon: '🔌', title: 'API Integration', desc: 'RESTful API & webhooks' },
+    { icon: '☁️', title: 'Cloud Storage', desc: 'Automatic cloud backup' },
+  ];
+  
+  const runDemoAnimation = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setExtractedData([]);
+    
+    const currentData = demos[activeDemo].mockData;
+    
+    currentData.forEach((item, i) => {
+      setTimeout(() => {
+        setExtractedData(prev => [...prev, item]);
+        if (i === currentData.length - 1) {
+          setTimeout(() => setIsAnimating(false), 500);
+        }
+      }, 400 * (i + 1));
+    });
+  };
+  
+  useEffect(() => {
+    setExtractedData([]);
+  }, [activeDemo]);
+  
+  return (
+    <ScrapingSection id="data-scraping" ref={sectionRef}>
+      <BackgroundGrid />
+      
+      <Container>
+        <SectionHeader>
+          <Badge
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            <BadgeIcon>🔮</BadgeIcon>
+            <span>New Service</span>
+          </Badge>
+          
+          <SectionTitle
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            Intelligent <GradientText>Data Scraping</GradientText>
+          </SectionTitle>
+          
+          <SectionDesc
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Extract valuable data from any website at scale. Our enterprise-grade 
+            scraping infrastructure handles millions of requests with 99.9% uptime.
+          </SectionDesc>
+        </SectionHeader>
+        
+        <DemoSection>
+          <DemoTabs
+            initial={{ opacity: 0, x: -30 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            {demos.map((demo, i) => (
+              <DemoTab
+                key={i}
+                $active={activeDemo === i}
+                $color={demo.color}
+                onClick={() => setActiveDemo(i)}
+                whileHover={{ x: 4 }}
+              >
+                <DemoTabIcon>{demo.icon}</DemoTabIcon>
+                <DemoTabContent>
+                  <DemoTabTitle>{demo.title}</DemoTabTitle>
+                  <DemoTabDesc>{demo.description}</DemoTabDesc>
+                </DemoTabContent>
+              </DemoTab>
+            ))}
+          </DemoTabs>
+          
+          <DemoVisual
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <TerminalWindow>
+              <TerminalHeader>
+                <TerminalDots>
+                  <Dot $color="#FF5F56" />
+                  <Dot $color="#FFBD2E" />
+                  <Dot $color="#27CA40" />
+                </TerminalDots>
+                <TerminalTitle>data-extractor.js</TerminalTitle>
+              </TerminalHeader>
+              
+              <TerminalBody>
+                <CodeLine>
+                  <LineNumber>1</LineNumber>
+                  <Code><Keyword>const</Keyword> scraper = <Function>initScraper</Function>({`{`}</Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>2</LineNumber>
+                  <Code>  target: <String>'{demos[activeDemo].title.toLowerCase().replace(' ', '-')}'</String>,</Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>3</LineNumber>
+                  <Code>  mode: <String>'intelligent'</String>,</Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>4</LineNumber>
+                  <Code>  proxy: <Keyword>true</Keyword></Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>5</LineNumber>
+                  <Code>{`}`});</Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>6</LineNumber>
+                  <Code></Code>
+                </CodeLine>
+                <CodeLine>
+                  <LineNumber>7</LineNumber>
+                  <Code><Keyword>await</Keyword> scraper.<Function>extract</Function>();</Code>
+                </CodeLine>
+                
+                <OutputSection>
+                  <OutputHeader>
+                    <span>📤 Extracted Data</span>
+                    <RunButton
+                      onClick={runDemoAnimation}
+                      disabled={isAnimating}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {isAnimating ? 'Extracting...' : 'Run Demo'}
+                    </RunButton>
+                  </OutputHeader>
+                  
+                  <DataOutput>
+                    <AnimatePresence mode="popLayout">
+                      {extractedData.map((item, i) => (
+                        <DataRow
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          $color={demos[activeDemo].color}
+                        >
+                          <DataField>{item.field}:</DataField>
+                          <DataValue>{item.value}</DataValue>
+                        </DataRow>
+                      ))}
+                    </AnimatePresence>
+                    
+                    {extractedData.length === 0 && !isAnimating && (
+                      <EmptyState>Click "Run Demo" to see data extraction</EmptyState>
+                    )}
+                    
+                    {isAnimating && (
+                      <LoadingIndicator>
+                        <LoadingDot style={{ animationDelay: '0ms' }} />
+                        <LoadingDot style={{ animationDelay: '150ms' }} />
+                        <LoadingDot style={{ animationDelay: '300ms' }} />
+                      </LoadingIndicator>
+                    )}
+                  </DataOutput>
+                </OutputSection>
+              </TerminalBody>
+            </TerminalWindow>
+          </DemoVisual>
+        </DemoSection>
+        
+        <FeaturesGrid>
+          {features.map((feature, i) => (
+            <FeatureCard
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+              whileHover={{ y: -4, borderColor: 'rgba(139, 92, 246, 0.4)' }}
+            >
+              <FeatureIcon>{feature.icon}</FeatureIcon>
+              <FeatureTitle>{feature.title}</FeatureTitle>
+              <FeatureDesc>{feature.desc}</FeatureDesc>
+            </FeatureCard>
+          ))}
+        </FeaturesGrid>
+        
+        <CTARow
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <CTACard>
+            <CTAContent>
+              <CTATitle>Ready to unlock your data?</CTATitle>
+              <CTADesc>
+                Get started with our scraping API. First 10,000 requests free.
+              </CTADesc>
+            </CTAContent>
+            <CTAButtons>
+              <PrimaryCTA
+                href="#contact"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Get API Access
+              </PrimaryCTA>
+              <SecondaryCTA
+                href="#"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                View Documentation
+              </SecondaryCTA>
+            </CTAButtons>
+          </CTACard>
+        </CTARow>
+      </Container>
+    </ScrapingSection>
+  );
+};
+
+const ScrapingSection = styled.section`
+  position: relative;
+  padding: clamp(80px, 12vw, 160px) 0;
+  background: ${({ theme }) => theme.backgroundSecondary};
+  overflow: hidden;
+`;
+
+const BackgroundGrid = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+`;
+
+const Container = styled.div`
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+`;
+
+const SectionHeader = styled.div`
+  text-align: center;
+  margin-bottom: 64px;
+`;
+
+const Badge = styled(motion.div)`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: ${({ theme }) => theme.primaryMuted};
+  border: 1px solid ${({ theme }) => theme.borderAccent};
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.primary};
+  margin-bottom: 20px;
+`;
+
+const BadgeIcon = styled.span`
+  font-size: 1rem;
+`;
+
+const SectionTitle = styled(motion.h2)`
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 16px;
+`;
+
+const GradientText = styled.span`
+  background: ${({ theme }) => theme.gradient.textAccent};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const SectionDesc = styled(motion.p)`
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text.secondary};
+  max-width: 600px;
+  margin: 0 auto;
+`;
+
+const DemoSection = styled.div`
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+  margin-bottom: 64px;
+  
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const DemoTabs = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  @media (max-width: 900px) {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    &::-webkit-scrollbar { display: none; }
+  }
+`;
+
+const DemoTab = styled(motion.button)`
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  background: ${({ $active, theme }) => 
+    $active ? theme.background : 'transparent'};
+  border: 1px solid ${({ $active, $color, theme }) => 
+    $active ? $color + '40' : theme.border};
+  border-radius: 16px;
+  text-align: left;
+  transition: all 0.3s ease;
+  
+  ${({ $active, $color }) => $active && `
+    box-shadow: 0 0 30px ${$color}20;
+  `}
+  
+  @media (max-width: 900px) {
+    flex-shrink: 0;
+    min-width: 280px;
+  }
+`;
+
+const DemoTabIcon = styled.span`
+  font-size: 1.5rem;
+  line-height: 1;
+`;
+
+const DemoTabContent = styled.div``;
+
+const DemoTabTitle = styled.h4`
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 4px;
+`;
+
+const DemoTabDesc = styled.p`
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.text.tertiary};
+  line-height: 1.4;
+`;
+
+const DemoVisual = styled(motion.div)``;
+
+const TerminalWindow = styled.div`
+  background: #0D0D0D;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+`;
+
+const TerminalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+`;
+
+const TerminalDots = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const Dot = styled.div`
+  width: 12px;
+  height: 12px;
+  background: ${({ $color }) => $color};
+  border-radius: 50%;
+`;
+
+const TerminalTitle = styled.span`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+`;
+
+const TerminalBody = styled.div`
+  padding: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.8;
+`;
+
+const CodeLine = styled.div`
+  display: flex;
+  gap: 16px;
+`;
+
+const LineNumber = styled.span`
+  color: rgba(255, 255, 255, 0.2);
+  user-select: none;
+  min-width: 20px;
+  text-align: right;
+`;
+
+const Code = styled.span`
+  color: rgba(255, 255, 255, 0.8);
+`;
+
+const Keyword = styled.span`color: #C678DD;`;
+const Function = styled.span`color: #61AFEF;`;
+const String = styled.span`color: #98C379;`;
+
+const OutputSection = styled.div`
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+`;
+
+const OutputHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+`;
+
+const RunButton = styled(motion.button)`
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: white;
+  
+  &:disabled {
+    opacity: 0.7;
+  }
+`;
+
+const DataOutput = styled.div`
+  min-height: 180px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+`;
+
+const DataRow = styled(motion.div)`
+  display: flex;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid ${({ $color }) => $color};
+  border-radius: 6px;
+  margin-bottom: 8px;
+  
+  &:last-child { margin-bottom: 0; }
+`;
+
+const DataField = styled.span`
+  color: rgba(255, 255, 255, 0.5);
+  min-width: 120px;
+`;
+
+const DataValue = styled.span`
+  color: #98C379;
+  font-weight: 500;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.875rem;
+`;
+
+const LoadingIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+`;
+
+const LoadingDot = styled.div`
+  width: 8px;
+  height: 8px;
+  background: #8B5CF6;
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+  
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+  }
+`;
+
+const FeaturesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 64px;
+  
+  @media (max-width: 1000px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const FeatureCard = styled(motion.div)`
+  padding: 24px;
+  background: ${({ theme }) => theme.background};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+`;
+
+const FeatureIcon = styled.div`
+  font-size: 1.75rem;
+  margin-bottom: 12px;
+`;
+
+const FeatureTitle = styled.h4`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 6px;
+`;
+
+const FeatureDesc = styled.p`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.text.tertiary};
+`;
+
+const CTARow = styled(motion.div)``;
+
+const CTACard = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 40px;
+  background: ${({ theme }) => theme.gradient.meshViolet},
+              ${({ theme }) => theme.background};
+  border: 1px solid ${({ theme }) => theme.borderAccent};
+  border-radius: 24px;
+  
+  @media (max-width: 800px) {
+    flex-direction: column;
+    text-align: center;
+  }
+`;
+
+const CTAContent = styled.div``;
+
+const CTATitle = styled.h3`
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 8px;
+`;
+
+const CTADesc = styled.p`
+  font-size: 1rem;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const CTAButtons = styled.div`
+  display: flex;
+  gap: 12px;
+  
+  @media (max-width: 500px) {
+    flex-direction: column;
+  }
+`;
+
+const PrimaryCTA = styled(motion.a)`
+  padding: 16px 32px;
+  background: ${({ theme }) => theme.gradient.buttonPrimary};
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+  white-space: nowrap;
+`;
+
+const SecondaryCTA = styled(motion.a)`
+  padding: 16px 32px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  text-decoration: none;
+  white-space: nowrap;
+`;
+
+export default DataScraping;
+
+components/Home/TechStack/TechStack.jsx
+
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import styled from 'styled-components';
+
+const TechStack = () => {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  
+  const categories = [
+    {
+      title: 'Frontend',
+      color: '#8B5CF6',
+      techs: [
+        { name: 'React', icon: '⚛️' },
+        { name: 'Next.js', icon: '▲' },
+        { name: 'Vue', icon: '💚' },
+        { name: 'TypeScript', icon: '📘' },
+        { name: 'Tailwind', icon: '🎨' },
+        { name: 'Framer Motion', icon: '🎬' },
+      ],
+    },
+    {
+      title: 'Backend',
+      color: '#06B6D4',
+      techs: [
+        { name: 'Node.js', icon: '💚' },
+        { name: 'Python', icon: '🐍' },
+        { name: 'Go', icon: '🔵' },
+        { name: 'PostgreSQL', icon: '🐘' },
+        { name: 'MongoDB', icon: '🍃' },
+        { name: 'Redis', icon: '🔴' },
+      ],
+    },
+    {
+      title: 'Mobile',
+      color: '#10B981',
+      techs: [
+        { name: 'React Native', icon: '📱' },
+        { name: 'Flutter', icon: '🦋' },
+        { name: 'Swift', icon: '🍎' },
+        { name: 'Kotlin', icon: '🤖' },
+        { name: 'Expo', icon: '📲' },
+        { name: 'Firebase', icon: '🔥' },
+      ],
+    },
+    {
+      title: 'AI & Cloud',
+      color: '#F59E0B',
+      techs: [
+        { name: 'OpenAI', icon: '🧠' },
+        { name: 'TensorFlow', icon: '📊' },
+        { name: 'AWS', icon: '☁️' },
+        { name: 'Vercel', icon: '▲' },
+        { name: 'Docker', icon: '🐳' },
+        { name: 'Kubernetes', icon: '☸️' },
+      ],
+    },
+  ];
+  
+  return (
+    <TechSection ref={sectionRef}>
+      <Container>
+        <SectionHeader>
+          <Overline
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+          >
+            Technology Stack
+          </Overline>
+          <SectionTitle
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            Built with <GradientText>modern tech</GradientText>
+          </SectionTitle>
+          <SectionDesc
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            We use cutting-edge technologies to build scalable, performant solutions
+          </SectionDesc>
+        </SectionHeader>
+        
+        <TechGrid>
+          {categories.map((category, i) => (
+            <CategoryCard
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+              $color={category.color}
+            >
+              <CategoryHeader>
+                <CategoryDot style={{ background: category.color }} />
+                <CategoryTitle>{category.title}</CategoryTitle>
+              </CategoryHeader>
+              
+              <TechList>
+                {category.techs.map((tech, j) => (
+                  <TechItem
+                    key={j}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <TechIcon>{tech.icon}</TechIcon>
+                    <TechName>{tech.name}</TechName>
+                  </TechItem>
+                ))}
+              </TechList>
+            </CategoryCard>
+          ))}
+        </TechGrid>
+        
+        <BottomCTA
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <CTAText>
+            Don't see your tech? We're always learning and adapting to new technologies.
+          </CTAText>
+          <CTALink href="#contact">
+            Let's discuss your stack →
+          </CTALink>
+        </BottomCTA>
+      </Container>
+    </TechSection>
+  );
+};
+
+const TechSection = styled.section`
+  position: relative;
+  padding: clamp(80px, 12vw, 160px) 0;
+  background: ${({ theme }) => theme.background};
+`;
+
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+`;
+
+const SectionHeader = styled.div`
+  text-align: center;
+  margin-bottom: 64px;
+`;
+
+const Overline = styled(motion.span)`
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.primary};
+  margin-bottom: 16px;
+`;
+
+const SectionTitle = styled(motion.h2)`
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 16px;
+`;
+
+const GradientText = styled.span`
+  background: ${({ theme }) => theme.gradient.textAccent};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const SectionDesc = styled(motion.p)`
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text.secondary};
+  max-width: 500px;
+  margin: 0 auto;
+`;
+
+const TechGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  
+  @media (max-width: 1000px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const CategoryCard = styled(motion.div)`
+  padding: 28px;
+  background: ${({ theme }) => theme.backgroundSecondary};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 20px;
+  transition: all 0.4s ease;
+  
+  &:hover {
+    border-color: ${({ $color }) => $color}40;
+    box-shadow: 0 0 40px ${({ $color }) => $color}15;
+  }
+`;
+
+const CategoryHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const CategoryDot = styled.div`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+`;
+
+const CategoryTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+`;
+
+const TechList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const TechItem = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${({ theme }) => theme.surface.hover};
+    border-color: ${({ theme }) => theme.borderStrong};
+  }
+`;
+
+const TechIcon = styled.span`
+  font-size: 1rem;
+`;
+
+const TechName = styled.span`
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const BottomCTA = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 48px;
+  padding: 24px;
+  background: ${({ theme }) => theme.surface.default};
+  border-radius: 16px;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    text-align: center;
+  }
+`;
+
+const CTAText = styled.p`
+  font-size: 0.9375rem;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const CTALink = styled.a`
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.primary};
+  text-decoration: none;
+  white-space: nowrap;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export default TechStack;
+
+import React from 'react';
+import dynamic from 'next/dynamic';
+import Banner from '../components/Home/Banner';
+import About from '../components/Home/About';
+import Stats from '../components/Home/Stats';
+import Services from '../components/Home/Services';
+import DataScraping from '../components/Home/DataScraping';
+import Portfolio from '../components/Home/Portfolio';
+import TechStack from '../components/Home/TechStack';
+import Testimonials from '../components/Home/Testimonials';
+import FAQ from '../components/Home/FAQ';
+import Contact from '../components/Home/Contact';
+import Footer from '../components/Home/Footer';
+
+const Home = () => {
+  return (
+    <>
+      {/* Hero Section with Advanced 3D WebGL */}
+      <Banner />
+      
+      {/* About the Studio */}
+      <About />
+      
+      {/* Animated Stats Counter */}
+      <Stats />
+      
+      {/* Core Services */}
+      <Services />
+      
+      {/* Data Scraping Service (New Feature) */}
+      <DataScraping />
+      
+      {/* Portfolio / Selected Work */}
+      <Portfolio />
+      
+      {/* Technology Stack */}
+      <TechStack />
+      
+      {/* Client Testimonials Carousel */}
+      <Testimonials />
+      
+      {/* Comprehensive FAQ Section */}
+      <FAQ />
+      
+      {/* Contact Form */}
+      <Contact />
+      
+      {/* Footer */}
+      <Footer />
+    </>
+  );
+};
+
+export default Home;
+
+components/Home/Banner/Banner.jsx
+
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import styled from 'styled-components';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for Advanced WebGL scene
+const AdvancedHeroScene = dynamic(() => import('../../WebGL/AdvancedHeroScene'), { 
+  ssr: false,
+  loading: () => <SceneLoader />
+});
+
+const SceneLoader = () => (
+  <LoaderContainer>
+    <LoaderOrb />
+  </LoaderContainer>
+);
+
+const Banner = () => {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  
+  const titleWords = ['We', 'craft', 'digital', 'experiences'];
+  
+  return (
+    <HeroSection ref={sectionRef}>
+      <AdvancedHeroScene />
+      
+      <HeroContent style={{ y, opacity, scale }}>
+        <Overline
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <OverlineDot />
+          <span>Software Development Studio</span>
+          <OverlineBadge>Available for Projects</OverlineBadge>
+        </Overline>
+        
+        <HeroTitle>
+          {titleWords.map((word, i) => (
+            <TitleWord
+              key={i}
+              initial={{ opacity: 0, y: 60, rotateX: -40 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.3 + i * 0.1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {word === 'digital' ? <GradientWord>{word}</GradientWord> : word}
+            </TitleWord>
+          ))}
+        </HeroTitle>
+        
+        <HeroDescription
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+        >
+          We build premium web applications, mobile apps, AI solutions, and 
+          <HighlightText> data scraping systems</HighlightText> that transform 
+          businesses and delight users worldwide.
+        </HeroDescription>
+        
+        <HeroCTA
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+        >
+          <PrimaryButton
+            href="#contact"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <ButtonContent>
+              <span>Start a Project</span>
+              <ButtonArrow>→</ButtonArrow>
+            </ButtonContent>
+            <ButtonGlow />
+            <ButtonShine />
+          </PrimaryButton>
+          
+          <SecondaryButton
+            href="#work"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span>View Our Work</span>
+            <PlayIcon>▶</PlayIcon>
+          </SecondaryButton>
+        </HeroCTA>
+        
+        <HeroStats
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
+        >
+          {[
+            { value: '150+', label: 'Projects', icon: '🚀' },
+            { value: '50+', label: 'Clients', icon: '🤝' },
+            { value: '98%', label: 'Satisfaction', icon: '⭐' },
+            { value: '24/7', label: 'Support', icon: '💬' },
+          ].map((stat, i) => (
+            <StatItem key={i}>
+              <StatIcon>{stat.icon}</StatIcon>
+              <StatValue>{stat.value}</StatValue>
+              <StatLabel>{stat.label}</StatLabel>
+            </StatItem>
+          ))}
+        </HeroStats>
+        
+        <TrustedBy
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.4 }}
+        >
+          <TrustedLabel>Trusted by teams at</TrustedLabel>
+          <TrustedLogos>
+            {['TechFlow', 'StartupHub', 'DataInsights', 'ServicePro'].map((name, i) => (
+              <TrustedLogo key={i}>{name}</TrustedLogo>
+            ))}
+          </TrustedLogos>
+        </TrustedBy>
+      </HeroContent>
+      
+      <ScrollIndicator
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 1.6 }}
+      >
+        <ScrollMouse>
+          <ScrollWheel
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </ScrollMouse>
+        <ScrollText>Scroll to explore</ScrollText>
+      </ScrollIndicator>
+      
+      <FloatingElements>
+        <FloatingBadge
+          style={{ top: '20%', right: '10%' }}
+          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <BadgeIcon>⚡</BadgeIcon>
+          <span>Fast Delivery</span>
+        </FloatingBadge>
+        
+        <FloatingBadge
+          style={{ bottom: '30%', left: '5%' }}
+          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        >
+          <BadgeIcon>🔒</BadgeIcon>
+          <span>Secure</span>
+        </FloatingBadge>
+      </FloatingElements>
+    </HeroSection>
+  );
+};
+
+const LoaderContainer = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.background};
+`;
+
+const LoaderOrb = styled.div`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.gradient.buttonPrimary};
+  animation: pulse 1.5s ease-in-out infinite;
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+`;
+
+const HeroSection = styled.section`
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: ${({ theme }) => theme.background};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${({ theme }) => theme.gradient.heroMesh};
+    pointer-events: none;
+  }
+`;
+
+const HeroContent = styled(motion.div)`
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 clamp(24px, 5vw, 64px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Overline = styled(motion.div)`
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 12px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const OverlineDot = styled.span`
+  width: 8px;
+  height: 8px;
+  background: ${({ theme }) => theme.aurora.emerald};
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+`;
+
+const OverlineBadge = styled.span`
+  padding: 4px 10px;
+  background: ${({ theme }) => theme.primaryMuted};
+  border-radius: 100px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.primary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`;
+
+const HeroTitle = styled.h1`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 24px;
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: 32px;
+  perspective: 1000px;
+  
+  @media (max-width: 600px) {
+    gap: 0 12px;
+  }
+`;
+
+const TitleWord = styled(motion.span)`
+  display: inline-block;
+  transform-style: preserve-3d;
+`;
+
+const GradientWord = styled.span`
+  background: ${({ theme }) => theme.gradient.textAccent};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const HeroDescription = styled(motion.p)`
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.7;
+  color: ${({ theme }) => theme.text.secondary};
+  max-width: 650px;
+  margin-bottom: 48px;
+`;
+
+const HighlightText = styled.span`
+  color: ${({ theme }) => theme.primary};
+  font-weight: 500;
+`;
+
+const HeroCTA = styled(motion.div)`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 64px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+  }
+`;
+
+const PrimaryButton = styled(motion.a)`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 18px 36px;
+  background: ${({ theme }) => theme.gradient.buttonPrimary};
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+`;
+
+const ButtonContent = styled.span`
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+`;
+
+const ButtonArrow = styled.span`
+  display: inline-block;
+  transition: transform 0.3s ease;
+  
+  ${PrimaryButton}:hover & {
+    transform: translateX(4px);
+  }
+`;
+
+const ButtonGlow = styled.div`
+  position: absolute;
+  inset: 0;
+  background: ${({ theme }) => theme.gradient.buttonHover};
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  
+  ${PrimaryButton}:hover & {
+    opacity: 1;
+  }
+`;
+
+const ButtonShine = styled.div`
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+  
+  ${PrimaryButton}:hover & {
+    left: 100%;
+  }
+`;
+
+const SecondaryButton = styled(motion.a)`
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 36px;
+  background: ${({ theme }) => theme.surface.default};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  text-decoration: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: ${({ theme }) => theme.surface.hover};
+    border-color: ${({ theme }) => theme.borderStrong};
+  }
+`;
+
+const PlayIcon = styled.span`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.primaryMuted};
+  border-radius: 50%;
+  font-size: 0.625rem;
+  color: ${({ theme }) => theme.primary};
+`;
+
+const HeroStats = styled(motion.div)`
+  display: flex;
+  gap: 48px;
+  margin-bottom: 48px;
+  
+  @media (max-width: 700px) {
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+`;
+
+const StatIcon = styled.div`
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+`;
+
+const StatValue = styled.div`
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  color: ${({ theme }) => theme.text.primary};
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.text.tertiary};
+`;
+
+const TrustedBy = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+`;
+
+const TrustedLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.muted};
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+`;
+
+const TrustedLogos = styled.div`
+  display: flex;
+  gap: 32px;
+  opacity: 0.5;
+  
+  @media (max-width: 600px) {
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+`;
+
+const TrustedLogo = styled.span`
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.text.tertiary};
+  letter-spacing: -0.02em;
+`;
+
+const ScrollIndicator = styled(motion.div)`
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+`;
+
+const ScrollMouse = styled.div`
+  width: 26px;
+  height: 40px;
+  border: 2px solid ${({ theme }) => theme.border};
+  border-radius: 13px;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+`;
+
+const ScrollWheel = styled(motion.div)`
+  width: 4px;
+  height: 8px;
+  background: ${({ theme }) => theme.primary};
+  border-radius: 2px;
+`;
+
+const ScrollText = styled.span`
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.tertiary};
+`;
+
+const FloatingElements = styled.div`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const FloatingBadge = styled(motion.div)`
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: ${({ theme }) => theme.glass.background};
+  backdrop-filter: blur(12px);
+  border: 1px solid ${({ theme }) => theme.glass.border};
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const BadgeIcon = styled.span`
+  font-size: 1rem;
+`;
+
+export default Banner;
+
+styles/utils/responsive.js:
+
+// Responsive Breakpoints & Utilities
+// Following mobile-first approach
+
+export const breakpoints = {
+  xs: 480,   // Small phones
+  sm: 640,   // Large phones
+  md: 768,   // Tablets
+  lg: 1024,  // Small laptops
+  xl: 1280,  // Desktops
+  xxl: 1536, // Large desktops
+};
+
+// Media query helpers
+export const media = {
+  xs: `@media (min-width: ${breakpoints.xs}px)`,
+  sm: `@media (min-width: ${breakpoints.sm}px)`,
+  md: `@media (min-width: ${breakpoints.md}px)`,
+  lg: `@media (min-width: ${breakpoints.lg}px)`,
+  xl: `@media (min-width: ${breakpoints.xl}px)`,
+  xxl: `@media (min-width: ${breakpoints.xxl}px)`,
+  
+  // Max-width variants (for mobile-first exceptions)
+  maxXs: `@media (max-width: ${breakpoints.xs - 1}px)`,
+  maxSm: `@media (max-width: ${breakpoints.sm - 1}px)`,
+  maxMd: `@media (max-width: ${breakpoints.md - 1}px)`,
+  maxLg: `@media (max-width: ${breakpoints.lg - 1}px)`,
+  maxXl: `@media (max-width: ${breakpoints.xl - 1}px)`,
+  
+  // Special queries
+  touch: '@media (hover: none) and (pointer: coarse)',
+  hover: '@media (hover: hover) and (pointer: fine)',
+  reducedMotion: '@media (prefers-reduced-motion: reduce)',
+  dark: '@media (prefers-color-scheme: dark)',
+  light: '@media (prefers-color-scheme: light)',
+  portrait: '@media (orientation: portrait)',
+  landscape: '@media (orientation: landscape)',
+  retina: '@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)',
+};
+
+// Fluid typography scale (min, preferred, max)
+export const fluidType = {
+  xs: 'clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)',
+  sm: 'clamp(0.875rem, 0.8rem + 0.375vw, 1rem)',
+  base: 'clamp(1rem, 0.9rem + 0.5vw, 1.125rem)',
+  lg: 'clamp(1.125rem, 1rem + 0.625vw, 1.25rem)',
+  xl: 'clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem)',
+  '2xl': 'clamp(1.5rem, 1.25rem + 1.25vw, 2rem)',
+  '3xl': 'clamp(2rem, 1.5rem + 2.5vw, 3rem)',
+  '4xl': 'clamp(2.5rem, 2rem + 2.5vw, 4rem)',
+  '5xl': 'clamp(3rem, 2rem + 5vw, 5rem)',
+  '6xl': 'clamp(3.5rem, 2.5rem + 5vw, 6rem)',
+  hero: 'clamp(3rem, 2rem + 8vw, 7rem)',
+  display: 'clamp(4rem, 2rem + 12vw, 10rem)',
+};
+
+// Fluid spacing scale
+export const fluidSpace = {
+  xs: 'clamp(4px, 0.25rem + 0.5vw, 8px)',
+  sm: 'clamp(8px, 0.5rem + 0.5vw, 12px)',
+  md: 'clamp(12px, 0.75rem + 0.75vw, 16px)',
+  lg: 'clamp(16px, 1rem + 1vw, 24px)',
+  xl: 'clamp(24px, 1.5rem + 1.5vw, 32px)',
+  '2xl': 'clamp(32px, 2rem + 2vw, 48px)',
+  '3xl': 'clamp(48px, 3rem + 3vw, 64px)',
+  '4xl': 'clamp(64px, 4rem + 4vw, 96px)',
+  '5xl': 'clamp(80px, 5rem + 5vw, 128px)',
+  section: 'clamp(80px, 5rem + 8vw, 160px)',
+};
+
+// Container widths
+export const container = {
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1200px',
+  xxl: '1400px',
+  full: '100%',
+};
+
+// Grid system helpers
+export const grid = {
+  gap: {
+    sm: 'clamp(12px, 1rem, 16px)',
+    md: 'clamp(16px, 1.5rem, 24px)',
+    lg: 'clamp(24px, 2rem, 32px)',
+    xl: 'clamp(32px, 2.5rem, 48px)',
+  },
+  columns: {
+    1: 'repeat(1, 1fr)',
+    2: 'repeat(2, 1fr)',
+    3: 'repeat(3, 1fr)',
+    4: 'repeat(4, 1fr)',
+    6: 'repeat(6, 1fr)',
+    12: 'repeat(12, 1fr)',
+    auto: 'repeat(auto-fit, minmax(280px, 1fr))',
+    autoSm: 'repeat(auto-fit, minmax(200px, 1fr))',
+    autoLg: 'repeat(auto-fit, minmax(350px, 1fr))',
+  },
+};
+
+// Aspect ratios
+export const aspectRatio = {
+  square: '1 / 1',
+  video: '16 / 9',
+  portrait: '3 / 4',
+  landscape: '4 / 3',
+  wide: '21 / 9',
+  golden: '1.618 / 1',
+};
+
+// Z-index scale
+export const zIndex = {
+  hide: -1,
+  base: 0,
+  raised: 10,
+  dropdown: 100,
+  sticky: 200,
+  overlay: 300,
+  modal: 400,
+  popover: 500,
+  tooltip: 600,
+  cursor: 900,
+  max: 9999,
+};
+
+// Animation durations (respects reduced motion)
+export const duration = {
+  instant: '0ms',
+  fast: '150ms',
+  normal: '250ms',
+  slow: '400ms',
+  slower: '600ms',
+  slowest: '1000ms',
+};
+
+// Easing functions
+export const easing = {
+  linear: 'linear',
+  easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+  easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
+  easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+  easeOutQuart: 'cubic-bezier(0.25, 1, 0.5, 1)',
+  easeInOutQuart: 'cubic-bezier(0.76, 0, 0.24, 1)',
+  spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+};
+
+// Responsive visibility helpers (CSS strings)
+export const visibility = {
+  hideOnMobile: `
+    @media (max-width: ${breakpoints.md - 1}px) {
+      display: none !important;
+    }
+  `,
+  hideOnDesktop: `
+    @media (min-width: ${breakpoints.md}px) {
+      display: none !important;
+    }
+  `,
+  showOnMobile: `
+    display: none !important;
+    @media (max-width: ${breakpoints.md - 1}px) {
+      display: block !important;
+    }
+  `,
+  showOnDesktop: `
+    display: none !important;
+    @media (min-width: ${breakpoints.md}px) {
+      display: block !important;
+    }
+  `,
+};
+
+// Export all utilities
+export default {
+  breakpoints,
+  media,
+  fluidType,
+  fluidSpace,
+  container,
+  grid,
+  aspectRatio,
+  zIndex,
+  duration,
+  easing,
+  visibility,
+};

@@ -1,195 +1,121 @@
 import { createGlobalStyle } from 'styled-components';
 
 export default createGlobalStyle`
-  html, body, div, span, applet, object, iframe,
-  h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-  a, abbr, acronym, address, big, cite, code,
-  del, dfn, em, img, ins, kbd, q, s, samp,
-  small, strike, strong, sub, sup, tt, var,
-  b, u, i, center,
-  dl, dt, dd, ol, ul, li,
-  fieldset, form, label, legend,
-  table, caption, tbody, tfoot, thead, tr, th, td,
-  article, aside, canvas, details, embed,
-  figure, figcaption, footer, header, hgroup,
-  main, menu, nav, output, ruby, section, summary,
-  time, mark, audio, video {
+  /* CSS Reset */
+  *, *::before, *::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    border: 0;
-    font-size: 100%;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    vertical-align: baseline;
   }
-  /* HTML5 display-role reset for older browsers */
-  article, aside, details, figcaption, figure,
-  footer, header, hgroup, main, menu, nav, section {
-    display: block;
-  }
-  /* HTML5 hidden-attribute fix for newer browsers */
-  *[hidden] {
-    display: none;
-  }
-  body {
-    line-height: 1.7;
-    font-size: 17px;
-    font-size: 1.0625rem;
-    font-weight: 300;
-    overscroll-behavior: none;
-    height: auto;
-    overflow-y: visible;
-    background: ${({ theme }) => theme.background};
-    color: ${({ theme }) => theme.text};
-    transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  html {
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-  ol, ul {
-    list-style: none;
-  }
-  blockquote, q {
-    quotes: none;
-  }
-  blockquote:before, blockquote:after,
-  q:before, q:after {
-    content: '';
-    content: none;
-  }
-  table {
-    border-collapse: collapse;
-    border-spacing: 0;
-  }
-  /* http://www.paulirish.com/2012/box-sizing-border-box-ftw/ (2015/04/28)*/
-  html {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    font-size: 16px;
-    cursor: none;
-  }
-  *, *:before, *:after {
-    box-sizing: inherit;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
 
-  address {
-    font-style: normal;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 7.5rem;
-    line-height: 0.9;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  h2 {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  h3 {
-    font-size: 2rem;
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  h4 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  h5 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    line-height: 1.5;
-    letter-spacing: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  h6 {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.5;
-    letter-spacing: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    color: ${({ theme }) => theme.text.primary};
+    background: ${({ theme }) => theme.background};
+    overflow-x: hidden;
+    transition: background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: ${({ theme }) => theme.text.primary};
+  }
+
+  h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; }
+  h2 { font-size: clamp(2rem, 4vw, 3rem); }
+  h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+  h4 { font-size: 1.25rem; }
+  h5 { font-size: 1.125rem; }
+  h6 { font-size: 1rem; }
 
   p {
-    line-height: 1.6;
-    letter-spacing: 0;
-    font-weight: 400;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: ${({ theme }) => theme.text.secondary};
+    line-height: 1.7;
   }
 
   a {
-    display: inline-block;
     color: inherit;
     text-decoration: none;
-    cursor: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 0.2s ease;
   }
 
   button {
-    appearance: none;
-    padding: 0;
-    background: 0 0;
+    font-family: inherit;
     border: none;
-    color: inherit;
-    outline: 0;
-    cursor: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: none;
+    cursor: pointer;
+    outline: none;
   }
 
-  /* Professional focus indicators for accessibility */
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+
+  /* Focus Styles */
   *:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.emerald};
-    outline-offset: 4px;
+    outline: 2px solid ${({ theme }) => theme.primary};
+    outline-offset: 2px;
     border-radius: 4px;
   }
 
-  a:focus-visible,
-  button:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.emerald};
-    outline-offset: 4px;
+  /* Selection */
+  ::selection {
+    background: ${({ theme }) => theme.primaryMuted};
+    color: ${({ theme }) => theme.text.primary};
   }
 
-  /* Only hide cursor for mouse users */
-  @media (pointer: fine) {
-    html {
-      cursor: none;
-    }
-    a, button {
-      cursor: none;
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.backgroundSecondary};
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.border};
+    border-radius: 5px;
+    border: 2px solid ${({ theme }) => theme.backgroundSecondary};
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.borderStrong};
+  }
+
+  /* Cursor - only for non-touch devices */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      cursor: none !important;
     }
   }
 
-  @media (pointer: coarse) {
-    html {
-      cursor: auto;
-    }
-    a {
-      cursor: pointer;
-    }
-    button {
-      cursor: pointer;
-    }
-  }
-
-  /* Respect user motion preferences */
+  /* Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -197,46 +123,39 @@ export default createGlobalStyle`
     }
   }
 
-  /* Professional selection styles */
-  ::selection {
-    background: ${({ theme }) => theme.colors.emerald};
-    color: ${({ theme }) => theme.white};
-    text-shadow: none;
+  /* Custom Properties for animations */
+  :root {
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+    --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  ::-moz-selection {
-    background: ${({ theme }) => theme.colors.emerald};
-    color: ${({ theme }) => theme.white};
-    text-shadow: none;
-  }
-  
-  /* Premium shimmer animation */
-  @keyframes shimmer {
-    0% {
-      background-position: 0% center;
-    }
-    100% {
-      background-position: 200% center;
-    }
+  /* Utility Classes */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  svg {
-    width: 100%;
-    height: 100%;
-    display: block;
+  .gradient-text {
+    background: ${({ theme }) => theme.gradient.textAccent};
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  ::-webkit-scrollbar {
-    display: none;
+  .glass {
+    background: ${({ theme }) => theme.glass.background};
+    backdrop-filter: blur(${({ theme }) => theme.glass.blur});
+    -webkit-backdrop-filter: blur(${({ theme }) => theme.glass.blur});
+    border: 1px solid ${({ theme }) => theme.glass.border};
   }
-
-  ${({ theme }) => theme.breakpoints.small`
-    a {
-      cursor:pointer;
-    }
-
-    button {
-      cursor:pointer;
-    }
-  `};
 `;
+

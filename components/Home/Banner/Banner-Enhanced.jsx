@@ -1,9 +1,23 @@
+// Paste the enhanced Banner.jsx code from code.txt here (lines 1454-2004)
+// This is the enhanced version with all the new features
+// Once pasted, you can replace the current Banner.jsx with this
+
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import styled from 'styled-components';
 import dynamic from 'next/dynamic';
 
-const HeroScene = dynamic(() => import('../../WebGL/HeroScene'), { ssr: false });
+// Dynamic import for Advanced WebGL scene
+const AdvancedHeroScene = dynamic(() => import('../../WebGL/AdvancedHeroScene'), { 
+  ssr: false,
+  loading: () => <SceneLoader />
+});
+
+const SceneLoader = () => (
+  <LoaderContainer>
+    <LoaderOrb />
+  </LoaderContainer>
+);
 
 const Banner = () => {
   const sectionRef = useRef(null);
@@ -20,7 +34,7 @@ const Banner = () => {
   
   return (
     <HeroSection ref={sectionRef}>
-      <HeroScene />
+      <AdvancedHeroScene />
       
       <HeroContent style={{ y, opacity, scale }}>
         <Overline
@@ -29,7 +43,8 @@ const Banner = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <OverlineDot />
-          Software Development Studio
+          <span>Software Development Studio</span>
+          <OverlineBadge>Available for Projects</OverlineBadge>
         </Overline>
         
         <HeroTitle>
@@ -54,8 +69,9 @@ const Banner = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          We build premium web applications, mobile apps, and AI solutions
-          <br />that transform businesses and delight users.
+          We build premium web applications, mobile apps, AI solutions, and 
+          <HighlightText> data scraping systems</HighlightText> that transform 
+          businesses and delight users worldwide.
         </HeroDescription>
         
         <HeroCTA
@@ -73,6 +89,7 @@ const Banner = () => {
               <ButtonArrow>→</ButtonArrow>
             </ButtonContent>
             <ButtonGlow />
+            <ButtonShine />
           </PrimaryButton>
           
           <SecondaryButton
@@ -81,6 +98,7 @@ const Banner = () => {
             whileTap={{ scale: 0.98 }}
           >
             <span>View Our Work</span>
+            <PlayIcon>▶</PlayIcon>
           </SecondaryButton>
         </HeroCTA>
         
@@ -90,32 +108,91 @@ const Banner = () => {
           transition={{ duration: 0.8, delay: 1.2 }}
         >
           {[
-            { value: '100+', label: 'Projects Delivered' },
-            { value: '50+', label: 'Happy Clients' },
-            { value: '5+', label: 'Years Experience' },
+            { value: '150+', label: 'Projects', icon: '🚀' },
+            { value: '50+', label: 'Clients', icon: '🤝' },
+            { value: '98%', label: 'Satisfaction', icon: '⭐' },
+            { value: '24/7', label: 'Support', icon: '💬' },
           ].map((stat, i) => (
             <StatItem key={i}>
+              <StatIcon>{stat.icon}</StatIcon>
               <StatValue>{stat.value}</StatValue>
               <StatLabel>{stat.label}</StatLabel>
             </StatItem>
           ))}
         </HeroStats>
+        
+        <TrustedBy
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.4 }}
+        >
+          <TrustedLabel>Trusted by teams at</TrustedLabel>
+          <TrustedLogos>
+            {['TechFlow', 'StartupHub', 'DataInsights', 'ServicePro'].map((name, i) => (
+              <TrustedLogo key={i}>{name}</TrustedLogo>
+            ))}
+          </TrustedLogos>
+        </TrustedBy>
       </HeroContent>
       
       <ScrollIndicator
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1.4 }}
+        transition={{ duration: 0.8, delay: 1.6 }}
       >
-        <ScrollLine
-          animate={{ scaleY: [0, 1, 0], y: [0, 0, 20] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        <ScrollMouse>
+          <ScrollWheel
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </ScrollMouse>
         <ScrollText>Scroll to explore</ScrollText>
       </ScrollIndicator>
+      
+      <FloatingElements>
+        <FloatingBadge
+          style={{ top: '20%', right: '10%' }}
+          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <BadgeIcon>⚡</BadgeIcon>
+          <span>Fast Delivery</span>
+        </FloatingBadge>
+        
+        <FloatingBadge
+          style={{ bottom: '30%', left: '5%' }}
+          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        >
+          <BadgeIcon>🔒</BadgeIcon>
+          <span>Secure</span>
+        </FloatingBadge>
+      </FloatingElements>
     </HeroSection>
   );
 };
+
+const LoaderContainer = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.background};
+`;
+
+const LoaderOrb = styled.div`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.gradient.buttonPrimary};
+  animation: pulse 1.5s ease-in-out infinite;
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+`;
 
 const HeroSection = styled.section`
   position: relative;
@@ -160,12 +237,14 @@ const Overline = styled(motion.div)`
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
   margin-bottom: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
 `;
 
 const OverlineDot = styled.span`
   width: 8px;
   height: 8px;
-  background: ${({ theme }) => theme.primary};
+  background: ${({ theme }) => theme.aurora.emerald};
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
   
@@ -173,6 +252,17 @@ const OverlineDot = styled.span`
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(1.2); }
   }
+`;
+
+const OverlineBadge = styled.span`
+  padding: 4px 10px;
+  background: ${({ theme }) => theme.primaryMuted};
+  border-radius: 100px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.primary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 `;
 
 const HeroTitle = styled.h1`
@@ -188,6 +278,10 @@ const HeroTitle = styled.h1`
   color: ${({ theme }) => theme.text.primary};
   margin-bottom: 32px;
   perspective: 1000px;
+  
+  @media (max-width: 600px) {
+    gap: 0 12px;
+  }
 `;
 
 const TitleWord = styled(motion.span)`
@@ -206,18 +300,24 @@ const HeroDescription = styled(motion.p)`
   font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.7;
   color: ${({ theme }) => theme.text.secondary};
-  max-width: 600px;
+  max-width: 650px;
   margin-bottom: 48px;
+`;
+
+const HighlightText = styled.span`
+  color: ${({ theme }) => theme.primary};
+  font-weight: 500;
 `;
 
 const HeroCTA = styled(motion.div)`
   display: flex;
   gap: 16px;
-  margin-bottom: 80px;
+  margin-bottom: 64px;
   
   @media (max-width: 480px) {
     flex-direction: column;
     width: 100%;
+    max-width: 300px;
   }
 `;
 
@@ -225,11 +325,12 @@ const PrimaryButton = styled(motion.a)`
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 16px 32px;
+  padding: 18px 36px;
   background: ${({ theme }) => theme.gradient.buttonPrimary};
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
 `;
 
 const ButtonContent = styled.span`
@@ -237,8 +338,8 @@ const ButtonContent = styled.span`
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9375rem;
+  gap: 10px;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
 `;
@@ -264,18 +365,38 @@ const ButtonGlow = styled.div`
   }
 `;
 
+const ButtonShine = styled.div`
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+  
+  ${PrimaryButton}:hover & {
+    left: 100%;
+  }
+`;
+
 const SecondaryButton = styled(motion.a)`
   display: inline-flex;
   align-items: center;
-  padding: 16px 32px;
+  gap: 10px;
+  padding: 18px 36px;
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 14px;
-  font-size: 0.9375rem;
+  border-radius: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
   text-decoration: none;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s ease;
   
   &:hover {
     background: ${({ theme }) => theme.surface.hover};
@@ -283,12 +404,27 @@ const SecondaryButton = styled(motion.a)`
   }
 `;
 
+const PlayIcon = styled.span`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.primaryMuted};
+  border-radius: 50%;
+  font-size: 0.625rem;
+  color: ${({ theme }) => theme.primary};
+`;
+
 const HeroStats = styled(motion.div)`
   display: flex;
-  gap: 64px;
+  gap: 48px;
+  margin-bottom: 48px;
   
-  @media (max-width: 640px) {
-    gap: 32px;
+  @media (max-width: 700px) {
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 `;
 
@@ -296,22 +432,61 @@ const StatItem = styled.div`
   text-align: center;
 `;
 
-const StatValue = styled.div`
-  font-family: 'Satoshi', sans-serif;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 700;
-  color: ${({ theme }) => theme.text.primary};
+const StatIcon = styled.div`
+  font-size: 1.25rem;
   margin-bottom: 4px;
 `;
 
+const StatValue = styled.div`
+  font-family: 'Satoshi', sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  color: ${({ theme }) => theme.text.primary};
+`;
+
 const StatLabel = styled.div`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme }) => theme.text.tertiary};
+`;
+
+const TrustedBy = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+`;
+
+const TrustedLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.muted};
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+`;
+
+const TrustedLogos = styled.div`
+  display: flex;
+  gap: 32px;
+  opacity: 0.5;
+  
+  @media (max-width: 600px) {
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+`;
+
+const TrustedLogo = styled.span`
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.text.tertiary};
+  letter-spacing: -0.02em;
 `;
 
 const ScrollIndicator = styled(motion.div)`
   position: absolute;
-  bottom: 48px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -320,11 +495,21 @@ const ScrollIndicator = styled(motion.div)`
   gap: 12px;
 `;
 
-const ScrollLine = styled(motion.div)`
-  width: 1px;
+const ScrollMouse = styled.div`
+  width: 26px;
   height: 40px;
+  border: 2px solid ${({ theme }) => theme.border};
+  border-radius: 13px;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+`;
+
+const ScrollWheel = styled(motion.div)`
+  width: 4px;
+  height: 8px;
   background: ${({ theme }) => theme.primary};
-  transform-origin: top;
+  border-radius: 2px;
 `;
 
 const ScrollText = styled.span`
@@ -335,5 +520,34 @@ const ScrollText = styled.span`
   color: ${({ theme }) => theme.text.tertiary};
 `;
 
-export default Banner;
+const FloatingElements = styled.div`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
 
+const FloatingBadge = styled(motion.div)`
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: ${({ theme }) => theme.glass.background};
+  backdrop-filter: blur(12px);
+  border: 1px solid ${({ theme }) => theme.glass.border};
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const BadgeIcon = styled.span`
+  font-size: 1rem;
+`;
+
+export default Banner;
