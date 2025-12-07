@@ -53,6 +53,7 @@ const Work = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.1 }}
               whileHover={{ y: -6 }}
+              whileTap={{ y: -3, scale: 0.98 }}
             >
               <ProjectVisual>
                 <ProjectBadge>{project.category}</ProjectBadge>
@@ -77,7 +78,7 @@ const Work = () => {
                   ))}
                 </ProjectStats>
                 
-                <ProjectLink href="#">
+                <ProjectLink href="#work">
                   View Case Study →
                 </ProjectLink>
               </ProjectContent>
@@ -124,7 +125,7 @@ const GradientText = styled.span`
 const ProjectsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 32px;
+  gap: clamp(24px, 4vw, 32px);
   
   > div:first-child {
     grid-column: 1 / -1;
@@ -132,10 +133,15 @@ const ProjectsGrid = styled.div`
   
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    gap: 24px;
     
     > div:first-child {
       grid-column: 1;
     }
+  }
+  
+  @media (max-width: 480px) {
+    gap: 20px;
   }
 `;
 
@@ -180,7 +186,11 @@ const ProjectBadge = styled.div`
 `;
 
 const ProjectContent = styled.div`
-  padding: 32px;
+  padding: clamp(24px, 4vw, 32px);
+  
+  @media (max-width: 480px) {
+    padding: 20px;
+  }
 `;
 
 const ProjectTitle = styled.h3`

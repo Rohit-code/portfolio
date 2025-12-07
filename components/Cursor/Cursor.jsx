@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 import styled from 'styled-components';
 import { useCursorContext } from '../../context/cursor';
@@ -6,6 +6,7 @@ import { useCursorContext } from '../../context/cursor';
 const Cursor = () => {
   const { isHovering, cursorType } = useCursorContext();
   const cursorRef = useRef(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -18,6 +19,21 @@ const Cursor = () => {
   const ringY = useSpring(mouseY, { damping: 20, stiffness: 300 });
   
   useEffect(() => {
+    // Check if device supports hover (desktop/laptop)
+    const checkDevice = () => {
+      const isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      setIsDesktop(isHoverDevice);
+      return isHoverDevice;
+    };
+    
+    // Initial check
+    const isDesktopDevice = checkDevice();
+    
+    // Don't initialize cursor on touch devices
+    if (!isDesktopDevice) {
+      return;
+    }
+    
     const updateMousePosition = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
@@ -40,24 +56,34 @@ const Cursor = () => {
       }
     };
     
-    // Only show cursor on non-touch devices
-    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      // Show cursor immediately
-      if (cursorRef.current) {
-        cursorRef.current.style.opacity = '1';
-      }
-      
-      window.addEventListener('mousemove', updateMousePosition);
-      document.addEventListener('mouseenter', handleMouseEnter, true);
-      document.addEventListener('mouseleave', handleMouseLeave, true);
-      
-      return () => {
-        window.removeEventListener('mousemove', updateMousePosition);
-        document.removeEventListener('mouseenter', handleMouseEnter, true);
-        document.removeEventListener('mouseleave', handleMouseLeave, true);
-      };
+    // Show cursor immediately
+    if (cursorRef.current) {
+      cursorRef.current.style.opacity = '1';
     }
+    
+    window.addEventListener('mousemove', updateMousePosition);
+    document.addEventListener('mouseenter', handleMouseEnter, true);
+    document.addEventListener('mouseleave', handleMouseLeave, true);
+    
+    // Listen for resize/orientation changes
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const handleMediaChange = (e) => {
+      setIsDesktop(e.matches);
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
+    
+    return () => {
+      window.removeEventListener('mousemove', updateMousePosition);
+      document.removeEventListener('mouseenter', handleMouseEnter, true);
+      document.removeEventListener('mouseleave', handleMouseLeave, true);
+      mediaQuery.removeEventListener('change', handleMediaChange);
+    };
   }, [mouseX, mouseY]);
+  
+  // Don't render cursor on mobile/touch devices
+  if (!isDesktop) {
+    return null;
+  }
   
   return (
     <CursorContainer ref={cursorRef}>
@@ -104,8 +130,17 @@ const CursorContainer = styled.div`
   opacity: 1;
   transition: opacity 0.2s ease;
   
-  @media (hover: none) and (pointer: coarse) {
-    display: none;
+  /* Hide on all touch devices */
+  @media (hover: none) {
+    display: none !important;
+  }
+  
+  @media (pointer: coarse) {
+    display: none !important;
+  }
+  
+  @media (max-width: 768px) {
+    display: none !important;
   }
 `;
 

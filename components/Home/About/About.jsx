@@ -45,6 +45,7 @@ const About = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
                   whileHover={{ y: -4, borderColor: 'rgba(139, 92, 246, 0.6)' }}
+                  whileTap={{ y: -2, scale: 0.98 }}
                 >
                   <FeatureIcon>{feature.icon}</FeatureIcon>
                   <FeatureTitle>{feature.title}</FeatureTitle>
@@ -74,12 +75,16 @@ const Container = styled.div`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: clamp(32px, 8vw, 80px);
   align-items: center;
   
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
     gap: 48px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 32px;
   }
 `;
 
@@ -87,7 +92,7 @@ const Visual = styled.div``;
 
 const GlowCard = styled(motion.div)`
   position: relative;
-  padding: 60px 40px;
+  padding: clamp(40px, 7vw, 60px) clamp(24px, 5vw, 40px);
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 24px;
@@ -100,6 +105,10 @@ const GlowCard = styled(motion.div)`
     inset: 0;
     background: ${({ theme }) => theme.gradient.cardGlow};
     opacity: 0.5;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 32px 20px;
   }
 `;
 
@@ -143,10 +152,15 @@ const GradientText = styled.span`
 const FeatureGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: clamp(16px, 3vw, 20px);
   
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  @media (max-width: 400px) {
+    gap: 12px;
   }
 `;
 

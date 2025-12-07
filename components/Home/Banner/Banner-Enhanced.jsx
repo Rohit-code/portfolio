@@ -82,7 +82,7 @@ const Banner = () => {
           <PrimaryButton
             href="#contact"
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.96 }}
           >
             <ButtonContent>
               <span>Start a Project</span>
@@ -95,7 +95,7 @@ const Banner = () => {
           <SecondaryButton
             href="#work"
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.96 }}
           >
             <span>View Our Work</span>
             <PlayIcon>▶</PlayIcon>
@@ -154,6 +154,7 @@ const Banner = () => {
           style={{ top: '20%', right: '10%' }}
           animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          whileTap={{ scale: 0.95 }}
         >
           <BadgeIcon>⚡</BadgeIcon>
           <span>Fast Delivery</span>
@@ -163,6 +164,7 @@ const Banner = () => {
           style={{ bottom: '30%', left: '5%' }}
           animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          whileTap={{ scale: 0.95 }}
         >
           <BadgeIcon>🔒</BadgeIcon>
           <span>Secure</span>
@@ -210,6 +212,7 @@ const HeroSection = styled.section`
     inset: 0;
     background: ${({ theme }) => theme.gradient.heroMesh};
     pointer-events: none;
+    z-index: 1;
   }
 `;
 
@@ -218,27 +221,44 @@ const HeroContent = styled(motion.div)`
   z-index: 10;
   max-width: 1200px;
   width: 100%;
-  padding: 0 clamp(24px, 5vw, 64px);
+  padding: 0 clamp(16px, 5vw, 64px);
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 72px);
+  
+  @media (max-width: 768px) {
+    min-height: calc(100vh - 64px);
+  }
+  
+  @media (max-width: 375px) {
+    padding: 0 16px;
+    min-height: calc(100vh - 64px);
+  }
 `;
 
 const Overline = styled(motion.div)`
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px 8px 12px;
+  gap: clamp(6px, 1.5vw, 10px);
+  padding: clamp(6px, 1vw, 8px) clamp(12px, 2vw, 16px) clamp(6px, 1vw, 8px) clamp(10px, 1.5vw, 12px);
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 100px;
-  font-size: 0.8125rem;
+  font-size: clamp(0.75rem, 1.5vw, 0.8125rem);
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
-  margin-bottom: 32px;
+  margin-bottom: clamp(20px, 4vw, 32px);
   flex-wrap: wrap;
   justify-content: center;
+  
+  @media (max-width: 375px) {
+    font-size: 0.6875rem;
+    padding: 6px 10px 6px 8px;
+    margin-bottom: 20px;
+  }
 `;
 
 const OverlineDot = styled.span`
@@ -269,18 +289,20 @@ const HeroTitle = styled.h1`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0 24px;
+  gap: 0 clamp(8px, 3vw, 24px);
   font-family: 'Satoshi', sans-serif;
-  font-size: clamp(3rem, 10vw, 7rem);
+  font-size: clamp(2rem, 8vw, 7rem);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.03em;
   color: ${({ theme }) => theme.text.primary};
-  margin-bottom: 32px;
+  margin-bottom: clamp(20px, 4vw, 32px);
   perspective: 1000px;
   
-  @media (max-width: 600px) {
-    gap: 0 12px;
+  @media (max-width: 375px) {
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+    gap: 0 8px;
+    margin-bottom: 20px;
   }
 `;
 
@@ -297,11 +319,18 @@ const GradientWord = styled.span`
 `;
 
 const HeroDescription = styled(motion.p)`
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
   line-height: 1.7;
   color: ${({ theme }) => theme.text.secondary};
   max-width: 650px;
-  margin-bottom: 48px;
+  margin-bottom: clamp(32px, 6vw, 48px);
+  padding: 0 clamp(8px, 2vw, 0);
+  
+  @media (max-width: 375px) {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
 `;
 
 const HighlightText = styled.span`
@@ -311,13 +340,19 @@ const HighlightText = styled.span`
 
 const HeroCTA = styled(motion.div)`
   display: flex;
-  gap: 16px;
-  margin-bottom: 64px;
+  gap: clamp(12px, 2vw, 16px);
+  margin-bottom: clamp(40px, 8vw, 64px);
+  width: 100%;
+  max-width: 500px;
   
   @media (max-width: 480px) {
     flex-direction: column;
-    width: 100%;
-    max-width: 300px;
+    max-width: 100%;
+    gap: 12px;
+  }
+  
+  @media (max-width: 375px) {
+    margin-bottom: 40px;
   }
 `;
 
@@ -325,12 +360,18 @@ const PrimaryButton = styled(motion.a)`
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 18px 36px;
+  padding: clamp(14px, 2.5vw, 18px) clamp(28px, 4.5vw, 36px);
   background: ${({ theme }) => theme.gradient.buttonPrimary};
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
   box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+  font-size: clamp(0.875rem, 1.8vw, 1rem);
+  
+  @media (max-width: 400px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const ButtonContent = styled.span`
@@ -387,12 +428,12 @@ const ButtonShine = styled.div`
 const SecondaryButton = styled(motion.a)`
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 18px 36px;
+  gap: clamp(8px, 1.5vw, 10px);
+  padding: clamp(14px, 2.5vw, 18px) clamp(28px, 4.5vw, 36px);
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 1.8vw, 1rem);
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
   text-decoration: none;
@@ -401,6 +442,11 @@ const SecondaryButton = styled(motion.a)`
   &:hover {
     background: ${({ theme }) => theme.surface.hover};
     border-color: ${({ theme }) => theme.borderStrong};
+  }
+  
+  @media (max-width: 400px) {
+    width: 100%;
+    justify-content: center;
   }
 `;
 
@@ -418,13 +464,18 @@ const PlayIcon = styled.span`
 
 const HeroStats = styled(motion.div)`
   display: flex;
-  gap: 48px;
-  margin-bottom: 48px;
+  gap: clamp(16px, 4vw, 48px);
+  margin-bottom: clamp(24px, 5vw, 48px);
+  flex-wrap: wrap;
+  justify-content: center;
   
   @media (max-width: 700px) {
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 20px;
+  }
+  
+  @media (max-width: 375px) {
+    gap: 12px;
+    margin-bottom: 24px;
   }
 `;
 
@@ -439,14 +490,22 @@ const StatIcon = styled.div`
 
 const StatValue = styled.div`
   font-family: 'Satoshi', sans-serif;
-  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
   font-weight: 700;
   color: ${({ theme }) => theme.text.primary};
+  
+  @media (max-width: 375px) {
+    font-size: 1rem;
+  }
 `;
 
 const StatLabel = styled.div`
-  font-size: 0.75rem;
+  font-size: clamp(0.625rem, 1.2vw, 0.75rem);
   color: ${({ theme }) => theme.text.tertiary};
+  
+  @media (max-width: 375px) {
+    font-size: 0.625rem;
+  }
 `;
 
 const TrustedBy = styled(motion.div)`
@@ -466,13 +525,17 @@ const TrustedLabel = styled.span`
 
 const TrustedLogos = styled.div`
   display: flex;
-  gap: 32px;
+  gap: clamp(16px, 4vw, 32px);
   opacity: 0.5;
+  flex-wrap: wrap;
+  justify-content: center;
   
   @media (max-width: 600px) {
     gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
+  }
+  
+  @media (max-width: 400px) {
+    gap: 16px;
   }
 `;
 
@@ -525,10 +588,6 @@ const FloatingElements = styled.div`
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  
-  @media (max-width: 900px) {
-    display: none;
-  }
 `;
 
 const FloatingBadge = styled(motion.div)`
@@ -544,6 +603,22 @@ const FloatingBadge = styled(motion.div)`
   font-size: 0.8125rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
+  
+  @media (max-width: 600px) {
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    gap: 6px;
+    
+    &:first-child {
+      top: 15% !important;
+      right: 5% !important;
+    }
+    
+    &:last-child {
+      bottom: 25% !important;
+      left: 5% !important;
+    }
+  }
 `;
 
 const BadgeIcon = styled.span`

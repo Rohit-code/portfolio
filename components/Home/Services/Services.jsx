@@ -51,6 +51,7 @@ const Services = () => {
                 $active={activeService === i}
                 onClick={() => setActiveService(i)}
                 whileHover={{ x: 4 }}
+                whileTap={{ x: 2, scale: 0.98 }}
               >
                 <ServiceNumber>{service.number}</ServiceNumber>
                 <ServiceInfo>
@@ -134,10 +135,15 @@ const GradientText = styled.span`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 60px;
+  gap: clamp(32px, 6vw, 60px);
   
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 32px;
   }
 `;
 
@@ -209,13 +215,17 @@ const ServiceDetail = styled.div`
 `;
 
 const DetailCard = styled(motion.div)`
-  padding: 48px;
+  padding: clamp(32px, 5vw, 48px);
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 24px;
   
   @media (max-width: 600px) {
     padding: 32px 24px;
+  }
+  
+  @media (max-width: 400px) {
+    padding: 24px 16px;
   }
 `;
 

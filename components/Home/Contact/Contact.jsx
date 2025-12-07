@@ -58,6 +58,7 @@ const Contact = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
                   whileHover={{ y: -4, borderColor: 'rgba(139, 92, 246, 0.6)' }}
+                  whileTap={{ y: -2, scale: 0.98 }}
                 >
                   <CardIcon>{info.icon}</CardIcon>
                   <CardContent>
@@ -76,6 +77,7 @@ const Contact = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -2, scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {social.icon}
                 </SocialLink>
@@ -180,11 +182,15 @@ const Container = styled.div`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: clamp(32px, 8vw, 80px);
   
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
     gap: 48px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 32px;
   }
 `;
 
@@ -249,15 +255,15 @@ const SocialLinks = styled.div`
 `;
 
 const SocialLink = styled(motion.a)`
-  width: 48px;
-  height: 48px;
+  width: clamp(40px, 8vw, 48px);
+  height: clamp(40px, 8vw, 48px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 2vw, 1rem);
   color: ${({ theme }) => theme.text.secondary};
   text-decoration: none;
   transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
@@ -272,14 +278,18 @@ const SocialLink = styled(motion.a)`
 const FormWrapper = styled(motion.div)``;
 
 const Form = styled.form`
-  padding: 40px;
+  padding: clamp(24px, 5vw, 40px);
   background: ${({ theme }) => theme.glass.background};
   backdrop-filter: blur(20px);
   border: 1px solid ${({ theme }) => theme.glass.border};
   border-radius: 24px;
   
   @media (max-width: 600px) {
-    padding: 28px 20px;
+    padding: 24px 16px;
+  }
+  
+  @media (max-width: 400px) {
+    padding: 20px 12px;
   }
 `;
 
@@ -328,7 +338,7 @@ const Select = styled.select`
 const TextArea = styled.textarea`
   ${inputStyles}
   resize: vertical;
-  min-height: 120px;
+  min-height: clamp(100px, 20vw, 120px);
 `;
 
 const SubmitButton = styled(motion.button)`
@@ -357,12 +367,18 @@ const Glow = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 800px;
-  height: 800px;
+  width: clamp(400px, 80vw, 800px);
+  height: clamp(400px, 80vw, 800px);
   background: ${({ theme }) => theme.gradient.meshViolet};
   filter: blur(150px);
   opacity: 0.2;
   pointer-events: none;
+  
+  @media (max-width: 600px) {
+    width: clamp(300px, 100vw, 500px);
+    height: clamp(300px, 100vw, 500px);
+    filter: blur(100px);
+  }
 `;
 
 export default Contact;

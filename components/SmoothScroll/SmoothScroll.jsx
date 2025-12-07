@@ -12,8 +12,8 @@ const SmoothScroll = ({ children }) => {
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
+      smoothTouch: true,
+      touchMultiplier: 1.5,
       infinite: false,
       autoResize: true,
     });
@@ -30,8 +30,17 @@ const SmoothScroll = ({ children }) => {
     
     // Handle anchor links
     const handleAnchorClick = (e) => {
-      const href = e.target.closest('a')?.getAttribute('href');
-      if (href?.startsWith('#')) {
+      const anchor = e.target.closest('a');
+      if (!anchor) return;
+      
+      const href = anchor.getAttribute('href');
+      // Check if href starts with '#' and has an actual ID (not just '#')
+      if (!href || !href.startsWith('#') || href.length <= 1) {
+        return;
+      }
+      
+      // Validate that it's a valid CSS selector
+      try {
         e.preventDefault();
         const target = document.querySelector(href);
         if (target) {
@@ -40,6 +49,9 @@ const SmoothScroll = ({ children }) => {
             duration: 1.5,
           });
         }
+      } catch (error) {
+        // Silently fail if selector is invalid
+        console.warn('Invalid anchor selector:', href);
       }
     };
     

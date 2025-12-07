@@ -18,14 +18,29 @@ export default createGlobalStyle`
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 1rem;
+    font-size: clamp(14px, 2vw, 16px);
     font-weight: 400;
     line-height: 1.6;
     color: ${({ theme }) => theme.text.primary};
     background: ${({ theme }) => theme.background};
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     transition: background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
                 color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  /* Prevent horizontal scroll on all devices */
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Ensure images and media are responsive */
+  img, video, iframe, embed, object {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Typography */

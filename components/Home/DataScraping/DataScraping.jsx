@@ -142,6 +142,7 @@ const DataScraping = () => {
                 $color={demo.color}
                 onClick={() => setActiveDemo(i)}
                 whileHover={{ x: 4 }}
+                whileTap={{ x: 2, scale: 0.98 }}
               >
                 <DemoTabIcon>{demo.icon}</DemoTabIcon>
                 <DemoTabContent>
@@ -253,6 +254,7 @@ const DataScraping = () => {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
               whileHover={{ y: -4, borderColor: 'rgba(139, 92, 246, 0.4)' }}
+              whileTap={{ y: -2, scale: 0.98 }}
             >
               <FeatureIcon>{feature.icon}</FeatureIcon>
               <FeatureTitle>{feature.title}</FeatureTitle>
@@ -282,7 +284,7 @@ const DataScraping = () => {
                 Get API Access
               </PrimaryCTA>
               <SecondaryCTA
-                href="#"
+                href="#work"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -361,20 +363,27 @@ const GradientText = styled.span`
 `;
 
 const SectionDesc = styled(motion.p)`
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: ${({ theme }) => theme.text.secondary};
   max-width: 600px;
   margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 0);
 `;
 
 const DemoSection = styled.div`
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 32px;
-  margin-bottom: 64px;
+  grid-template-columns: clamp(280px, 30vw, 320px) 1fr;
+  gap: clamp(24px, 4vw, 32px);
+  margin-bottom: clamp(48px, 8vw, 64px);
   
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 20px;
+    margin-bottom: 48px;
   }
 `;
 
@@ -386,8 +395,12 @@ const DemoTabs = styled(motion.div)`
   @media (max-width: 900px) {
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     &::-webkit-scrollbar { display: none; }
+    &::-webkit-scrollbar-track { display: none; }
   }
 `;
 
@@ -410,7 +423,13 @@ const DemoTab = styled(motion.button)`
   
   @media (max-width: 900px) {
     flex-shrink: 0;
-    min-width: 280px;
+    min-width: clamp(240px, 70vw, 280px);
+    padding: 16px;
+  }
+  
+  @media (max-width: 400px) {
+    min-width: 220px;
+    padding: 14px;
   }
 `;
 
@@ -472,15 +491,25 @@ const TerminalTitle = styled.span`
 `;
 
 const TerminalBody = styled.div`
-  padding: 24px;
+  padding: clamp(16px, 3vw, 24px);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
   line-height: 1.8;
+  overflow-x: auto;
+  
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
 `;
 
 const CodeLine = styled.div`
   display: flex;
-  gap: 16px;
+  gap: clamp(8px, 2vw, 16px);
+  overflow-x: auto;
+  
+  @media (max-width: 600px) {
+    gap: 8px;
+  }
 `;
 
 const LineNumber = styled.span`
@@ -537,19 +566,26 @@ const DataOutput = styled.div`
 
 const DataRow = styled(motion.div)`
   display: flex;
-  gap: 12px;
-  padding: 8px 12px;
+  flex-wrap: wrap;
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
   background: rgba(255, 255, 255, 0.03);
   border-left: 3px solid ${({ $color }) => $color};
   border-radius: 6px;
   margin-bottom: 8px;
   
   &:last-child { margin-bottom: 0; }
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 4px;
+  }
 `;
 
 const DataField = styled.span`
   color: rgba(255, 255, 255, 0.5);
-  min-width: 120px;
+  min-width: clamp(100px, 20vw, 120px);
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
 `;
 
 const DataValue = styled.span`
@@ -589,8 +625,8 @@ const LoadingDot = styled.div`
 const FeaturesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-bottom: 64px;
+  gap: clamp(12px, 2vw, 16px);
+  margin-bottom: clamp(48px, 8vw, 64px);
   
   @media (max-width: 1000px) {
     grid-template-columns: repeat(3, 1fr);
@@ -598,16 +634,26 @@ const FeaturesGrid = styled.div`
   
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  @media (max-width: 400px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 `;
 
 const FeatureCard = styled(motion.div)`
-  padding: 24px;
+  padding: clamp(16px, 3vw, 24px);
   background: ${({ theme }) => theme.background};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
   text-align: center;
   transition: all 0.3s ease;
+  
+  @media (max-width: 400px) {
+    padding: 16px;
+  }
 `;
 
 const FeatureIcon = styled.div`
@@ -616,15 +662,16 @@ const FeatureIcon = styled.div`
 `;
 
 const FeatureTitle = styled.h4`
-  font-size: 0.875rem;
+  font-size: clamp(0.8125rem, 1.5vw, 0.875rem);
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
   margin-bottom: 6px;
 `;
 
 const FeatureDesc = styled.p`
-  font-size: 0.75rem;
+  font-size: clamp(0.6875rem, 1.2vw, 0.75rem);
   color: ${({ theme }) => theme.text.tertiary};
+  line-height: 1.5;
 `;
 
 const CTARow = styled(motion.div)``;
@@ -633,8 +680,8 @@ const CTACard = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
-  padding: 40px;
+  gap: clamp(24px, 4vw, 32px);
+  padding: clamp(24px, 5vw, 40px);
   background: ${({ theme }) => theme.gradient.meshViolet},
               ${({ theme }) => theme.background};
   border: 1px solid ${({ theme }) => theme.borderAccent};
@@ -643,6 +690,12 @@ const CTACard = styled.div`
   @media (max-width: 800px) {
     flex-direction: column;
     text-align: center;
+    gap: 24px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 24px 16px;
+    gap: 20px;
   }
 `;
 
@@ -650,47 +703,67 @@ const CTAContent = styled.div``;
 
 const CTATitle = styled.h3`
   font-family: 'Satoshi', sans-serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
   margin-bottom: 8px;
 `;
 
 const CTADesc = styled.p`
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 2vw, 1rem);
   color: ${({ theme }) => theme.text.secondary};
+  line-height: 1.6;
 `;
 
 const CTAButtons = styled.div`
   display: flex;
   gap: 12px;
+  width: 100%;
+  
+  @media (max-width: 800px) {
+    width: 100%;
+    justify-content: center;
+  }
   
   @media (max-width: 500px) {
     flex-direction: column;
+    gap: 10px;
   }
 `;
 
 const PrimaryCTA = styled(motion.a)`
-  padding: 16px 32px;
+  padding: clamp(12px, 2vw, 16px) clamp(24px, 4vw, 32px);
   background: ${({ theme }) => theme.gradient.buttonPrimary};
   border-radius: 12px;
-  font-size: 0.9375rem;
+  font-size: clamp(0.875rem, 1.8vw, 0.9375rem);
   font-weight: 600;
   color: white;
   text-decoration: none;
   white-space: nowrap;
+  text-align: center;
+  flex: 1;
+  
+  @media (max-width: 500px) {
+    width: 100%;
+  }
 `;
 
 const SecondaryCTA = styled(motion.a)`
-  padding: 16px 32px;
+  padding: clamp(12px, 2vw, 16px) clamp(24px, 4vw, 32px);
   background: ${({ theme }) => theme.surface.default};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
-  font-size: 0.9375rem;
+  font-size: clamp(0.875rem, 1.8vw, 0.9375rem);
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
   text-decoration: none;
   white-space: nowrap;
+  text-align: center;
+  flex: 1;
+  
+  @media (max-width: 500px) {
+    width: 100%;
+  }
 `;
 
 export default DataScraping;

@@ -10,6 +10,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         <title>Studio - Premium Digital Experiences</title>
         <meta name="description" content="We craft premium web applications, mobile apps, and AI solutions" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

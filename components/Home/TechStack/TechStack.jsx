@@ -105,7 +105,7 @@ const TechStack = () => {
                   <TechItem
                     key={j}
                     whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={{ scale: 0.95, y: -1 }}
                   >
                     <TechIcon>{tech.icon}</TechIcon>
                     <TechName>{tech.name}</TechName>
@@ -187,19 +187,25 @@ const SectionDesc = styled(motion.p)`
 const TechGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: clamp(16px, 3vw, 24px);
   
   @media (max-width: 1000px) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
   
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  @media (max-width: 400px) {
+    gap: 12px;
   }
 `;
 
 const CategoryCard = styled(motion.div)`
-  padding: 28px;
+  padding: clamp(20px, 3.5vw, 28px);
   background: ${({ theme }) => theme.backgroundSecondary};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 20px;
@@ -208,6 +214,10 @@ const CategoryCard = styled(motion.div)`
   &:hover {
     border-color: ${({ $color }) => $color}40;
     box-shadow: 0 0 40px ${({ $color }) => $color}15;
+  }
+  
+  @media (max-width: 400px) {
+    padding: 18px;
   }
 `;
 
@@ -266,15 +276,21 @@ const BottomCTA = styled(motion.div)`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-top: 48px;
-  padding: 24px;
+  gap: clamp(12px, 2vw, 16px);
+  margin-top: clamp(32px, 6vw, 48px);
+  padding: clamp(20px, 3vw, 24px);
   background: ${({ theme }) => theme.surface.default};
   border-radius: 16px;
+  flex-wrap: wrap;
   
   @media (max-width: 600px) {
     flex-direction: column;
     text-align: center;
+    gap: 12px;
+  }
+  
+  @media (max-width: 400px) {
+    padding: 16px;
   }
 `;
 

@@ -68,6 +68,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -2, borderColor: 'rgba(139, 92, 246, 0.6)' }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {social.icon}
                 </SocialLink>
@@ -204,11 +205,16 @@ const SocialLink = styled(motion.a)`
 const LinksColumns = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 48px;
+  gap: clamp(24px, 5vw, 48px);
   
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 32px;
+  }
+  
+  @media (max-width: 400px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 `;
 
@@ -258,6 +264,11 @@ const FooterBottom = styled.div`
   @media (max-width: 700px) {
     flex-direction: column;
     text-align: center;
+    gap: 12px;
+  }
+  
+  @media (max-width: 400px) {
+    gap: 8px;
   }
 `;
 
@@ -268,7 +279,13 @@ const Copyright = styled.p`
 
 const LegalLinks = styled.div`
   display: flex;
-  gap: 24px;
+  gap: clamp(12px, 3vw, 24px);
+  flex-wrap: wrap;
+  justify-content: center;
+  
+  @media (max-width: 400px) {
+    gap: 12px;
+  }
 `;
 
 const LegalLink = styled(Link)`
@@ -299,12 +316,16 @@ const FooterGlow = styled.div`
   bottom: -200px;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 400px;
+  width: clamp(300px, 60vw, 600px);
+  height: clamp(200px, 40vw, 400px);
   background: ${({ theme }) => theme.gradient.meshViolet};
   filter: blur(120px);
   opacity: 0.3;
   pointer-events: none;
+  
+  @media (max-width: 600px) {
+    filter: blur(80px);
+  }
 `;
 
 export default Footer;
