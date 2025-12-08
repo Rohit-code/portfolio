@@ -38,11 +38,9 @@ const Navigation = () => {
   const handleNavClick = (e, href) => {
     dispatch({ type: 'CLOSE_MENU' });
     
-    // If it's an anchor link and we're not on the homepage, navigate to homepage first
     if (href?.startsWith('#')) {
       if (pathname !== '/') {
         e.preventDefault();
-        // Navigate to homepage with hash, then scroll will happen via SmoothScroll
         router.push(`/${href}`);
         return;
       }
@@ -153,10 +151,11 @@ const NavContainer = styled(motion.nav)`
   z-index: 1000;
   background: ${({ $scrolled, theme }) => 
     $scrolled ? theme.glass.background : 'transparent'};
+  -webkit-backdrop-filter: ${({ $scrolled }) => $scrolled ? 'blur(24px)' : 'none'};
   backdrop-filter: ${({ $scrolled }) => $scrolled ? 'blur(24px)' : 'none'};
   border-bottom: 1px solid ${({ $scrolled, theme }) => 
     $scrolled ? theme.glass.border : 'transparent'};
-  transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+  transition: background 0.4s ease, border-color 0.4s ease;
   
   @media (max-width: 768px) {
     height: 64px;
@@ -167,21 +166,42 @@ const NavInner = styled.div`
   max-width: 1400px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 48px);
+  padding: 0 48px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  gap: 24px;
+  
+  /* Safari flexbox fix */
+  -webkit-box-align: center;
+  -webkit-box-pack: justify;
+  
+  @media (max-width: 1024px) {
+    padding: 0 32px;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0 20px;
+    gap: 16px;
+  }
   
   @media (max-width: 400px) {
-    padding: 0 12px;
+    padding: 0 16px;
+    gap: 12px;
   }
 `;
 
 const LogoWrapper = styled(Link)`
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  flex-shrink: 0;
+  
+  /* Safari flexbox fix */
+  -webkit-box-align: center;
 `;
 
 const LogoIcon = styled(motion.svg)`
@@ -189,14 +209,16 @@ const LogoIcon = styled(motion.svg)`
   height: 36px;
   stroke: ${({ theme }) => theme.primary};
   fill: none;
+  flex-shrink: 0;
 `;
 
 const LogoText = styled.span`
-  font-family: 'Satoshi', sans-serif;
+  font-family: 'Satoshi', 'Inter', sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: ${({ theme }) => theme.text.primary};
+  white-space: nowrap;
   
   @media (max-width: 480px) {
     display: none;
@@ -205,8 +227,13 @@ const LogoText = styled.span`
 
 const NavLinks = styled.div`
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  
+  /* Safari flexbox fix */
+  -webkit-box-align: center;
   
   @media (max-width: 768px) {
     display: none;
@@ -219,6 +246,8 @@ const NavLink = styled(Link)`
   font-size: 0.875rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
+  text-decoration: none;
+  white-space: nowrap;
   transition: color 0.25s ease;
   
   &:hover {
@@ -240,6 +269,7 @@ const NavLinkLine = styled.div`
   background: ${({ theme }) => theme.primary};
   opacity: 0;
   transform: scaleX(0);
+  transform-origin: center;
   transition: opacity 0.25s ease, transform 0.25s ease;
   
   ${NavLink}:hover & {
@@ -250,21 +280,35 @@ const NavLinkLine = styled.div`
 
 const NavActions = styled.div`
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
+  
+  /* Safari flexbox fix */
+  -webkit-box-align: center;
+  
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
 `;
 
 const NavCTA = styled(Link)`
   position: relative;
-  padding: clamp(8px, 1.5vw, 10px) clamp(16px, 3vw, 24px);
-  font-size: clamp(0.8125rem, 1.5vw, 0.875rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text.inverse};
   background: ${({ theme }) => theme.gradient.buttonPrimary};
   border-radius: 100px;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-decoration: none;
   white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   
   span {
     position: relative;
@@ -277,13 +321,13 @@ const NavCTA = styled(Link)`
   }
   
   @media (max-width: 480px) {
-    padding: 8px 14px;
-    font-size: 0.75rem;
+    padding: 8px 16px;
+    font-size: 0.8125rem;
   }
   
-  @media (max-width: 400px) {
-    padding: 6px 12px;
-    font-size: 0.6875rem;
+  @media (max-width: 360px) {
+    padding: 8px 14px;
+    font-size: 0.75rem;
   }
 `;
 
@@ -304,16 +348,17 @@ const MenuToggle = styled.button`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   gap: 5px;
   background: ${({ theme }) => theme.surface.default};
   border-radius: 10px;
-  transition: background 0.25s ease;
-  border: none;
+  border: 1px solid ${({ theme }) => theme.border};
   cursor: pointer;
   position: relative;
   z-index: 1001;
+  flex-shrink: 0;
+  transition: background 0.25s ease;
   
   &:hover {
     background: ${({ theme }) => theme.surface.hover};
@@ -327,10 +372,10 @@ const MenuToggle = styled.button`
 const MenuLine = styled.span`
   width: 18px;
   height: 2px;
-  background: ${({ theme, $isOpen }) => $isOpen ? theme.text.primary : theme.text.primary};
+  background: ${({ theme }) => theme.text.primary};
   border-radius: 2px;
   transition: all 0.3s ease;
-  position: relative;
+  flex-shrink: 0;
   
   ${MenuToggle} & {
     &.top {
@@ -364,6 +409,7 @@ const MobileMenuOverlay = styled.div`
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition: opacity 0.3s ease;
 `;
@@ -385,6 +431,7 @@ const MobileMenuContent = styled(motion.div)`
 
 const MobileMenuHeader = styled.div`
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
@@ -399,8 +446,8 @@ const MobileMenuTitle = styled.h3`
 `;
 
 const MobileMenuClose = styled.button`
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -422,9 +469,14 @@ const MobileNavList = styled.ul`
   flex-direction: column;
   gap: 8px;
   flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 `;
 
-const MobileNavItem = styled.li``;
+const MobileNavItem = styled.li`
+  list-style: none;
+`;
 
 const MobileNavLink = styled(Link)`
   display: block;
@@ -432,6 +484,7 @@ const MobileNavLink = styled(Link)`
   font-size: 1rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
+  text-decoration: none;
   border-radius: 12px;
   transition: all 0.2s ease;
   
@@ -460,4 +513,3 @@ const MobileMenuCTA = styled(Link)`
 `;
 
 export default Navigation;
-
