@@ -57,6 +57,32 @@ const SmoothScroll = ({ children }) => {
     
     document.addEventListener('click', handleAnchorClick);
     
+    // Handle hash on page load/navigation
+    const handleHashNavigation = () => {
+      const hash = window.location.hash;
+      if (hash && hash.length > 1) {
+        setTimeout(() => {
+          try {
+            const target = document.querySelector(hash);
+            if (target) {
+              lenis.scrollTo(target, {
+                offset: -80,
+                duration: 1.5,
+              });
+            }
+          } catch (error) {
+            console.warn('Invalid hash selector:', hash);
+          }
+        }, 100); // Small delay to ensure page is rendered
+      }
+    };
+    
+    // Handle hash on initial load
+    handleHashNavigation();
+    
+    // Handle hash when navigating (for client-side navigation)
+    window.addEventListener('hashchange', handleHashNavigation);
+    
     // Expose lenis to window for debugging
     if (typeof window !== 'undefined') {
       window.lenis = lenis;
@@ -64,6 +90,7 @@ const SmoothScroll = ({ children }) => {
     
     return () => {
       document.removeEventListener('click', handleAnchorClick);
+      window.removeEventListener('hashchange', handleHashNavigation);
       lenis.destroy();
     };
   }, []);

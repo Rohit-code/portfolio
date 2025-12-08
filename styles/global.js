@@ -8,6 +8,20 @@ export default createGlobalStyle`
     padding: 0;
   }
 
+  :root {
+    /* Theme CSS Variables - these transition smoothly */
+    --theme-primary: ${({ theme }) => theme.primary};
+    --theme-background: ${({ theme }) => theme.background};
+    --theme-transition-duration: 0.8s;
+    --theme-transition-easing: cubic-bezier(0.22, 1, 0.36, 1);
+    
+    /* Animation timing */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+    --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
   html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
@@ -27,8 +41,9 @@ export default createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    transition: background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    
+    /* Smooth background transition */
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-easing);
   }
   
   /* Prevent horizontal scroll on all devices */
@@ -136,14 +151,10 @@ export default createGlobalStyle`
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
-  }
-
-  /* Custom Properties for animations */
-  :root {
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-    --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
-    --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    :root {
+      --theme-transition-duration: 0ms;
+    }
   }
 
   /* Utility Classes */
@@ -172,5 +183,19 @@ export default createGlobalStyle`
     -webkit-backdrop-filter: blur(${({ theme }) => theme.glass.blur});
     border: 1px solid ${({ theme }) => theme.glass.border};
   }
+  
+  /* Theme transition classes for components that need smooth color changes */
+  .theme-transition {
+    transition: 
+      background-color var(--theme-transition-duration) var(--theme-transition-easing),
+      border-color var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+  
+  .theme-transition-fast {
+    transition: 
+      background-color 0.4s var(--theme-transition-easing),
+      border-color 0.4s var(--theme-transition-easing),
+      box-shadow 0.4s var(--theme-transition-easing);
+  }
 `;
-

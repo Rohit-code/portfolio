@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import styled from 'styled-components';
 import { useMenuContext } from '../../context/menu';
 
@@ -9,6 +10,8 @@ const Navigation = () => {
   const [hidden, setHidden] = useState(false);
   const [menuState, dispatch] = useMenuContext();
   const lastScrollY = useRef(0);
+  const pathname = usePathname();
+  const router = useRouter();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -32,8 +35,18 @@ const Navigation = () => {
     dispatch({ type: 'TOGGLE_MENU' });
   };
   
-  const handleNavClick = () => {
+  const handleNavClick = (e, href) => {
     dispatch({ type: 'CLOSE_MENU' });
+    
+    // If it's an anchor link and we're not on the homepage, navigate to homepage first
+    if (href?.startsWith('#')) {
+      if (pathname !== '/') {
+        e.preventDefault();
+        // Navigate to homepage with hash, then scroll will happen via SmoothScroll
+        router.push(`/${href}`);
+        return;
+      }
+    }
   };
   
   return (
@@ -60,7 +73,11 @@ const Navigation = () => {
           
           <NavLinks>
             {navItems.map((item, i) => (
-              <NavLink key={i} href={item.href}>
+              <NavLink 
+                key={i} 
+                href={item.href}
+                onClick={(e) => handleNavClick(e, item.href)}
+              >
                 <span>{item.label}</span>
                 <NavLinkLine />
               </NavLink>
@@ -68,7 +85,10 @@ const Navigation = () => {
           </NavLinks>
           
           <NavActions>
-            <NavCTA href="#contact">
+            <NavCTA 
+              href="#contact"
+              onClick={(e) => handleNavClick(e, '#contact')}
+            >
               <span>Start Project</span>
               <NavCTAGlow />
             </NavCTA>
@@ -103,13 +123,19 @@ const Navigation = () => {
           <MobileNavList>
             {navItems.map((item, i) => (
               <MobileNavItem key={i}>
-                <MobileNavLink href={item.href} onClick={handleNavClick}>
+                <MobileNavLink 
+                  href={item.href} 
+                  onClick={(e) => handleNavClick(e, item.href)}
+                >
                   {item.label}
                 </MobileNavLink>
               </MobileNavItem>
             ))}
           </MobileNavList>
-          <MobileMenuCTA href="#contact" onClick={handleNavClick}>
+          <MobileMenuCTA 
+            href="#contact" 
+            onClick={(e) => handleNavClick(e, '#contact')}
+          >
             Start Project
           </MobileMenuCTA>
         </MobileMenuContent>

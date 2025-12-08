@@ -1,12 +1,25 @@
-// Paste the AdvancedHeroScene.jsx code from code.txt here (lines 1-401)
-
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
+import { useTheme } from '../../context/theme';
 
 const AdvancedHeroScene = () => {
   const containerRef = useRef(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const targetRotation = useRef({ x: 0, y: 0 });
+  const { changeThemeColor } = useTheme();
+  const raycasterRef = useRef(null);
+  const cubeRef = useRef(null);
+  const isClickedRef = useRef(false);
+  const colorPausedRef = useRef(false);
+  const pausedColorCycleRef = useRef(0);
+  const pauseTimeoutRef = useRef(null);
+  const cubeMaterialRef = useRef(null);
+  const clockRef = useRef(null);
+  const cubeVisibleRef = useRef(true);
+  const cubeOpacityRef = useRef(1.0);
+  const reappearTimeoutRef = useRef(null);
+  const edgeLinesRef = useRef(null);
+  const wireframeCubeRef = useRef(null);
   
   useEffect(() => {
     if (!containerRef.current) return;
@@ -14,7 +27,6 @@ const AdvancedHeroScene = () => {
     const container = containerRef.current;
     let { width, height } = container.getBoundingClientRect();
     
-    // Detect mobile device
     const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isLowEndDevice = isMobile && (navigator.hardwareConcurrency < 4 || navigator.deviceMemory < 4);
     
@@ -22,12 +34,12 @@ const AdvancedHeroScene = () => {
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x080808, 0.015);
     
-    // Camera - centered with better perspective
+    // Camera
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
     camera.position.set(0, 0, 35);
     camera.lookAt(0, 0, 0);
     
-    // Add lighting to show cube structure better
+    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
     
@@ -53,13 +65,26 @@ const AdvancedHeroScene = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
+    renderer.domElement.style.cursor = 'pointer';
+    renderer.domElement.style.pointerEvents = 'auto';
     container.appendChild(renderer.domElement);
     
-    // === ROTATING CUBE (Central Element - Mouse Responsive) ===
+    // 8 Colors: 6 dark + 2 light/white tones
+    const cubeColors = [
+      '#8B5CF6', // Purple (dark theme)
+      '#06B6D4', // Cyan (dark theme)
+      '#10B981', // Green (dark theme)
+      '#F5F5F5', // Off-White (light theme)
+      '#F59E0B', // Amber (dark theme)
+      '#E8E4E0', // Warm White/Cream (light theme)
+      '#EF4444', // Red (dark theme)
+      '#EC4899', // Pink (dark theme)
+    ];
+    
+    // Cube
     const cubeSize = isMobile ? 7 : 10;
     const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
     
-    // Add edge subdivision for better cube definition
     const edges = new THREE.EdgesGeometry(cubeGeometry);
     const edgeMaterial = new THREE.LineBasicMaterial({
       color: 0xffffff,
@@ -73,12 +98,17 @@ const AdvancedHeroScene = () => {
       uniforms: {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-        uColor1: { value: new THREE.Color('#8B5CF6') }, // Purple
-        uColor2: { value: new THREE.Color('#06B6D4') }, // Cyan
-        uColor3: { value: new THREE.Color('#10B981') }, // Green
-        uColor4: { value: new THREE.Color('#F59E0B') }, // Amber
-        uColor5: { value: new THREE.Color('#EF4444') }, // Red
-        uColor6: { value: new THREE.Color('#EC4899') }, // Pink
+        uColor1: { value: new THREE.Color(cubeColors[0]) }, // Purple
+        uColor2: { value: new THREE.Color(cubeColors[1]) }, // Cyan
+        uColor3: { value: new THREE.Color(cubeColors[2]) }, // Green
+        uColor4: { value: new THREE.Color(cubeColors[3]) }, // Off-White
+        uColor5: { value: new THREE.Color(cubeColors[4]) }, // Amber
+        uColor6: { value: new THREE.Color(cubeColors[5]) }, // Warm White
+        uColor7: { value: new THREE.Color(cubeColors[6]) }, // Red
+        uColor8: { value: new THREE.Color(cubeColors[7]) }, // Pink
+        uPaused: { value: 0.0 },
+        uPausedColorCycle: { value: 0.0 },
+        uOpacity: { value: 1.0 },
       },
       vertexShader: `
         varying vec3 vPosition;
@@ -86,7 +116,6 @@ const AdvancedHeroScene = () => {
         varying vec3 vWorldPosition;
         varying vec2 vUv;
         uniform float uTime;
-        uniform vec2 uMouse;
         
         void main() {
           vPosition = position;
@@ -95,7 +124,6 @@ const AdvancedHeroScene = () => {
           vUv = uv;
           
           vec3 pos = position;
-          // Very subtle pulsing effect
           float pulse = sin(uTime * 1.5) * 0.01 + 1.0;
           pos *= pulse;
           
@@ -111,6 +139,11 @@ const AdvancedHeroScene = () => {
         uniform vec3 uColor4;
         uniform vec3 uColor5;
         uniform vec3 uColor6;
+        uniform vec3 uColor7;
+        uniform vec3 uColor8;
+        uniform float uPaused;
+        uniform float uPausedColorCycle;
+        uniform float uOpacity;
         
         varying vec3 vPosition;
         varying vec3 vNormal;
@@ -118,24 +151,24 @@ const AdvancedHeroScene = () => {
         varying vec2 vUv;
         
         void main() {
-          // Calculate lighting for proper 3D appearance
           vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
           vec3 lightDir1 = normalize(vec3(5.0, 5.0, 5.0));
           vec3 lightDir2 = normalize(vec3(-5.0, -5.0, 5.0));
           
-          // Diffuse lighting
           float NdotL1 = max(dot(vNormal, lightDir1), 0.0);
           float NdotL2 = max(dot(vNormal, lightDir2), 0.0);
           float lighting = 0.4 + 0.6 * (NdotL1 * 0.6 + NdotL2 * 0.5);
           
-          // Fresnel effect
           float fresnel = pow(1.0 - max(dot(viewDirection, vNormal), 0.0), 2.0);
           
-          // Smooth time-based color cycling through all luxury colors
-          // Slower transition speed for smoother changes
-          float colorCycle = mod(uTime * 0.12, 6.0);
+          // 8 color cycle
+          float colorCycle;
+          if (uPaused > 0.5) {
+            colorCycle = uPausedColorCycle;
+          } else {
+            colorCycle = mod(uTime * 0.1, 8.0); // Slower cycle for 8 colors
+          }
           
-          // Smooth interpolation using smoothstep (built-in GLSL function)
           vec3 baseColor1, baseColor2, baseColor3;
           float cycleProgress;
           
@@ -158,68 +191,69 @@ const AdvancedHeroScene = () => {
             cycleProgress = smoothstep(0.0, 1.0, colorCycle - 3.0);
             baseColor1 = mix(uColor4, uColor5, cycleProgress);
             baseColor2 = mix(uColor5, uColor6, cycleProgress * 0.6);
-            baseColor3 = mix(uColor6, uColor1, cycleProgress * 0.4);
+            baseColor3 = mix(uColor6, uColor7, cycleProgress * 0.4);
           } else if (colorCycle < 5.0) {
             cycleProgress = smoothstep(0.0, 1.0, colorCycle - 4.0);
             baseColor1 = mix(uColor5, uColor6, cycleProgress);
-            baseColor2 = mix(uColor6, uColor1, cycleProgress * 0.6);
+            baseColor2 = mix(uColor6, uColor7, cycleProgress * 0.6);
+            baseColor3 = mix(uColor7, uColor8, cycleProgress * 0.4);
+          } else if (colorCycle < 6.0) {
+            cycleProgress = smoothstep(0.0, 1.0, colorCycle - 5.0);
+            baseColor1 = mix(uColor6, uColor7, cycleProgress);
+            baseColor2 = mix(uColor7, uColor8, cycleProgress * 0.6);
+            baseColor3 = mix(uColor8, uColor1, cycleProgress * 0.4);
+          } else if (colorCycle < 7.0) {
+            cycleProgress = smoothstep(0.0, 1.0, colorCycle - 6.0);
+            baseColor1 = mix(uColor7, uColor8, cycleProgress);
+            baseColor2 = mix(uColor8, uColor1, cycleProgress * 0.6);
             baseColor3 = mix(uColor1, uColor2, cycleProgress * 0.4);
           } else {
-            cycleProgress = smoothstep(0.0, 1.0, colorCycle - 5.0);
-            baseColor1 = mix(uColor6, uColor1, cycleProgress);
+            cycleProgress = smoothstep(0.0, 1.0, colorCycle - 7.0);
+            baseColor1 = mix(uColor8, uColor1, cycleProgress);
             baseColor2 = mix(uColor1, uColor2, cycleProgress * 0.6);
             baseColor3 = mix(uColor2, uColor3, cycleProgress * 0.4);
           }
           
-          // Mouse-influenced gradient with smooth position-based variation
           float mouseInfluenceX = (uMouse.x - 0.5) * 1.2;
           float mouseInfluenceY = (uMouse.y - 0.5) * 1.2;
           
-          // Slower, smoother gradients
           float t = sin(vPosition.x * 0.1 + uTime * 0.4 + mouseInfluenceX * 1.5) * 0.5 + 0.5;
           float t2 = cos(vPosition.y * 0.1 + uTime * 0.35 + mouseInfluenceY * 1.5) * 0.5 + 0.5;
           float t3 = sin(vPosition.z * 0.1 + uTime * 0.38) * 0.5 + 0.5;
           
-          // Smooth multi-color mixing with eased transitions
           vec3 color = mix(baseColor1, baseColor2, smoothstep(0.0, 1.0, t));
           color = mix(color, baseColor3, smoothstep(0.0, 1.0, t2) * 0.5);
           color = mix(color, baseColor1, smoothstep(0.0, 1.0, t3) * 0.3);
           
-          // Apply lighting to show cube faces properly
           color *= lighting;
-          
-          // Add fresnel glow with smooth color variation
           color += fresnel * baseColor2 * 0.4;
           
-          // Edge glow with smooth luxury shimmer (subtle)
           float edge = 1.0 - abs(dot(viewDirection, vNormal));
           color += edge * baseColor3 * 0.3;
           
-          // Subtle sparkle effect
           float sparkle = sin(vPosition.x * 1.2 + uTime * 1.5) * sin(vPosition.y * 1.2 + uTime * 1.4) * sin(vPosition.z * 1.2 + uTime * 1.45);
           color += sparkle * 0.05 * baseColor1;
           
-          // Make cube fully opaque (no transparency)
-          float alpha = 1.0;
-          
-          gl_FragColor = vec4(color, alpha);
+          gl_FragColor = vec4(color, uOpacity);
         }
       `,
-      transparent: false,
+      transparent: true,
       side: THREE.FrontSide,
-      depthWrite: true,
-      wireframe: false,
+      depthWrite: false,
     });
     
     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.position.set(0, 0, 0);
+    cubeRef.current = cube;
+    cubeMaterialRef.current = cubeMaterial;
     scene.add(cube);
     
-    // Add edge lines to clearly show cube structure
     edgeLines.position.set(0, 0, 0);
+    edgeLinesRef.current = edgeLines;
     scene.add(edgeLines);
     
-    // Wireframe cube for extra detail (subtle)
+    raycasterRef.current = new THREE.Raycaster();
+    
     const wireframeCube = new THREE.LineSegments(
       new THREE.WireframeGeometry(cubeGeometry),
       new THREE.LineBasicMaterial({
@@ -229,183 +263,144 @@ const AdvancedHeroScene = () => {
       })
     );
     wireframeCube.position.set(0, 0, 0);
+    wireframeCubeRef.current = wireframeCube;
     scene.add(wireframeCube);
     
-    // === WIREFRAME ICOSAHEDRON (Background decoration) ===
-    const icoGeometry = new THREE.IcosahedronGeometry(12, 1);
-    const icoWireframe = new THREE.WireframeGeometry(icoGeometry);
-    const icoMaterial = new THREE.LineBasicMaterial({
-      color: 0x8B5CF6,
-      transparent: true,
-      opacity: 0.2,
-    });
-    const icoLines = new THREE.LineSegments(icoWireframe, icoMaterial);
-    icoLines.position.set(0, 0, -15);
-    scene.add(icoLines);
-    
-    // === FLOATING GEOMETRIC SHAPES ===
-    const shapes = [];
-    const shapeGeometries = [
-      new THREE.OctahedronGeometry(2),
-      new THREE.TetrahedronGeometry(2.5),
-      new THREE.IcosahedronGeometry(1.8),
-      new THREE.DodecahedronGeometry(2),
-    ];
-    
-    const shapeCount = isMobile ? (isLowEndDevice ? 8 : 12) : 20;
-    for (let i = 0; i < shapeCount; i++) {
-      const geometry = shapeGeometries[i % shapeGeometries.length];
-      const material = new THREE.MeshBasicMaterial({
-        color: i % 3 === 0 ? 0x8B5CF6 : i % 3 === 1 ? 0x06B6D4 : 0x10B981,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.4 + Math.random() * 0.3,
-      });
-      
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(
-        (Math.random() - 0.5) * 80,
-        (Math.random() - 0.5) * 50,
-        (Math.random() - 0.5) * 30 - 10
-      );
-      mesh.rotation.set(
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-        Math.random() * Math.PI
-      );
-      mesh.userData = {
-        rotationSpeed: {
-          x: (Math.random() - 0.5) * 0.02,
-          y: (Math.random() - 0.5) * 0.02,
-          z: (Math.random() - 0.5) * 0.02,
-        },
-        floatSpeed: 0.5 + Math.random() * 1,
-        floatOffset: Math.random() * Math.PI * 2,
-        originalY: mesh.position.y,
-      };
-      
-      shapes.push(mesh);
-      scene.add(mesh);
-    }
-    
-    // === PARTICLE GALAXY ===
-    const galaxyCount = isMobile ? (isLowEndDevice ? 1000 : 1500) : 3000;
-    const galaxyGeometry = new THREE.BufferGeometry();
-    const galaxyPositions = new Float32Array(galaxyCount * 3);
-    const galaxyColors = new Float32Array(galaxyCount * 3);
-    const galaxySizes = new Float32Array(galaxyCount);
-    
-    const colorInside = new THREE.Color('#8B5CF6');
-    const colorOutside = new THREE.Color('#06B6D4');
-    
-    for (let i = 0; i < galaxyCount; i++) {
-      const i3 = i * 3;
-      const radius = Math.random() * 50 + 5;
-      const spinAngle = radius * 0.5;
-      const branchAngle = ((i % 3) / 3) * Math.PI * 2;
-      
-      const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
-      const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
-      const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 5;
-      
-      galaxyPositions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
-      galaxyPositions[i3 + 1] = randomY;
-      galaxyPositions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ - 15;
-      
-      const mixedColor = colorInside.clone();
-      mixedColor.lerp(colorOutside, radius / 55);
-      
-      galaxyColors[i3] = mixedColor.r;
-      galaxyColors[i3 + 1] = mixedColor.g;
-      galaxyColors[i3 + 2] = mixedColor.b;
-      
-      galaxySizes[i] = Math.random() * 2 + 0.5;
-    }
-    
-    galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
-    galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
-    galaxyGeometry.setAttribute('size', new THREE.BufferAttribute(galaxySizes, 1));
-    
-    const galaxyMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        uPixelRatio: { value: renderer.getPixelRatio() },
-      },
-      vertexShader: `
-        attribute float size;
-        varying vec3 vColor;
-        uniform float uTime;
-        uniform float uPixelRatio;
-        
-        void main() {
-          vColor = color;
-          vec3 pos = position;
-          
-          float angle = uTime * 0.1;
-          float s = sin(angle);
-          float c = cos(angle);
-          pos.xz = mat2(c, -s, s, c) * pos.xz;
-          
-          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = size * uPixelRatio * (30.0 / -mvPosition.z);
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vColor;
-        
-        void main() {
-          float d = length(gl_PointCoord - 0.5);
-          if (d > 0.5) discard;
-          
-          float alpha = 1.0 - smoothstep(0.0, 0.5, d);
-          alpha *= 0.8;
-          
-          gl_FragColor = vec4(vColor, alpha);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-    });
-    
-    const galaxy = new THREE.Points(galaxyGeometry, galaxyMaterial);
-    galaxy.position.set(0, 0, -10);
-    scene.add(galaxy);
-    
-    // === FLOATING LIGHT ORBS ===
-    const orbGroup = new THREE.Group();
-    const orbCount = isMobile ? 4 : 8;
-    for (let i = 0; i < orbCount; i++) {
-      const orbGeometry = new THREE.SphereGeometry(0.5, 16, 16);
-      const orbMaterial = new THREE.MeshBasicMaterial({
-        color: i % 2 === 0 ? 0x8B5CF6 : 0x06B6D4,
-        transparent: true,
-        opacity: 0.8,
-      });
-      const orb = new THREE.Mesh(orbGeometry, orbMaterial);
-      
-      const angle = (i / orbCount) * Math.PI * 2;
-      const radius = 15;
-      orb.position.set(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * 3,
-        Math.sin(angle) * radius
-      );
-      orb.userData = { angle, radius, speed: 0.3 + Math.random() * 0.2 };
-      orbGroup.add(orb);
-    }
-    scene.add(orbGroup);
-    
-    // === MOUSE/TOUCH HANDLING ===
+    // Mouse handling
     const handleMouseMove = (e) => {
       const rect = container.getBoundingClientRect();
       mouseRef.current.x = (e.clientX - rect.left) / width;
       mouseRef.current.y = 1 - (e.clientY - rect.top) / height;
-      // More responsive rotation
       targetRotation.current.y = (mouseRef.current.x - 0.5) * 1.2;
       targetRotation.current.x = (mouseRef.current.y - 0.5) * 1.0;
+    };
+    
+    // Click handling
+    const handleClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!cubeVisibleRef.current || isClickedRef.current) return;
+      if (!raycasterRef.current || !cubeRef.current) return;
+      
+      const rect = container.getBoundingClientRect();
+      const mouse = new THREE.Vector2();
+      mouse.x = ((e.clientX - rect.left) / width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / height) * 2 + 1;
+      
+      raycasterRef.current.setFromCamera(mouse, camera);
+      const intersects = raycasterRef.current.intersectObject(cubeRef.current);
+      
+      if (intersects.length > 0) {
+        console.log('Cube clicked!');
+        isClickedRef.current = true;
+        colorPausedRef.current = true;
+        
+        const currentElapsed = clockRef.current ? clockRef.current.getElapsedTime() : performance.now() / 1000;
+        const currentColorCycle = (currentElapsed * 0.1) % 8; // 8 colors now
+        pausedColorCycleRef.current = currentColorCycle;
+        
+        if (cubeMaterialRef.current) {
+          cubeMaterialRef.current.uniforms.uPaused.value = 1.0;
+          cubeMaterialRef.current.uniforms.uPausedColorCycle.value = currentColorCycle;
+        }
+        
+        // Get current color from 8-color array
+        const colorIndex = Math.floor(currentColorCycle);
+        const nextIndex = (colorIndex + 1) % 8;
+        const progress = currentColorCycle % 1;
+        
+        const color1 = new THREE.Color(cubeColors[colorIndex]);
+        const color2 = new THREE.Color(cubeColors[nextIndex]);
+        const interpolatedColor = color1.clone().lerp(color2, progress);
+        const currentColor = `#${interpolatedColor.getHexString()}`;
+        
+        console.log('Current color:', currentColor, 'Index:', colorIndex);
+        
+        // Get cube screen position
+        const cubeWorldPos = new THREE.Vector3();
+        cubeRef.current.getWorldPosition(cubeWorldPos);
+        cubeWorldPos.project(camera);
+        const cubeScreenX = (cubeWorldPos.x * 0.5 + 0.5) * window.innerWidth;
+        const cubeScreenY = (cubeWorldPos.y * -0.5 + 0.5) * window.innerHeight;
+        
+        changeThemeColor(currentColor, cubeScreenX, cubeScreenY);
+        
+        // Dissolve
+        cubeVisibleRef.current = false;
+        const dissolveDuration = 4500;
+        const startOpacity = cubeOpacityRef.current;
+        const startTime = performance.now();
+        
+        const edgeMat = edgeLinesRef.current?.material;
+        const wireframeMat = wireframeCubeRef.current?.material;
+        const startEdgeOpacity = edgeMat?.opacity || 0.4;
+        const startWireframeOpacity = wireframeMat?.opacity || 0.15;
+        
+        const dissolve = () => {
+          const elapsed = performance.now() - startTime;
+          const progress = Math.min(elapsed / dissolveDuration, 1);
+          const organicEase = 1 - Math.pow(1 - progress, 2.5);
+          
+          cubeOpacityRef.current = startOpacity * (1 - organicEase);
+          if (edgeMat) edgeMat.opacity = startEdgeOpacity * (1 - organicEase);
+          if (wireframeMat) wireframeMat.opacity = startWireframeOpacity * (1 - organicEase);
+          
+          if (cubeMaterialRef.current) {
+            cubeMaterialRef.current.uniforms.uOpacity.value = cubeOpacityRef.current;
+          }
+          
+          if (progress < 1) {
+            requestAnimationFrame(dissolve);
+          } else {
+            if (cubeRef.current) cubeRef.current.visible = false;
+            if (edgeLinesRef.current) edgeLinesRef.current.visible = false;
+            if (wireframeCubeRef.current) wireframeCubeRef.current.visible = false;
+            
+            // Reappear after 30 seconds
+            reappearTimeoutRef.current = setTimeout(() => {
+              console.log('Cube reappearing');
+              cubeVisibleRef.current = true;
+              isClickedRef.current = false;
+              colorPausedRef.current = false;
+              
+              if (cubeRef.current) cubeRef.current.visible = true;
+              if (edgeLinesRef.current) edgeLinesRef.current.visible = true;
+              if (wireframeCubeRef.current) wireframeCubeRef.current.visible = true;
+              
+              const fadeInDuration = 3000;
+              const fadeStartTime = performance.now();
+              
+              const fadeIn = () => {
+                const elapsed = performance.now() - fadeStartTime;
+                const progress = Math.min(elapsed / fadeInDuration, 1);
+                const organicEaseIn = Math.pow(progress, 2.2);
+                
+                cubeOpacityRef.current = organicEaseIn;
+                if (edgeMat) edgeMat.opacity = startEdgeOpacity * organicEaseIn;
+                if (wireframeMat) wireframeMat.opacity = startWireframeOpacity * organicEaseIn;
+                
+                if (cubeMaterialRef.current) {
+                  cubeMaterialRef.current.uniforms.uOpacity.value = cubeOpacityRef.current;
+                }
+                
+                if (progress < 1) {
+                  requestAnimationFrame(fadeIn);
+                } else {
+                  if (cubeMaterialRef.current) {
+                    cubeMaterialRef.current.uniforms.uPaused.value = 0.0;
+                  }
+                  console.log('Cube fade in complete');
+                }
+              };
+              
+              fadeIn();
+            }, 30000);
+          }
+        };
+        
+        dissolve();
+      }
     };
     
     const handleTouchMove = (e) => {
@@ -422,88 +417,51 @@ const AdvancedHeroScene = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     
-    // === ANIMATION LOOP ===
+    const clickHandler = handleClick;
+    container.addEventListener('click', clickHandler, true);
+    renderer.domElement.addEventListener('click', clickHandler, true);
+    
+    // Animation loop
     let animationId;
     const clock = new THREE.Clock();
+    clockRef.current = clock;
     
     const animate = () => {
       animationId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
       
-      // Update uniforms
       cubeMaterial.uniforms.uTime.value = elapsed;
       cubeMaterial.uniforms.uMouse.value.set(mouseRef.current.x, mouseRef.current.y);
-      galaxyMaterial.uniforms.uTime.value = elapsed;
       
-      // Rotate cube 360 degrees continuously with mouse influence
       cube.rotation.x = elapsed * 0.5 + targetRotation.current.x * 0.8;
       cube.rotation.y = elapsed * 0.6 + targetRotation.current.y * 0.8;
       cube.rotation.z = elapsed * 0.4;
       
-      // Ensure full 360 degree rotation
-      if (cube.rotation.x >= Math.PI * 2) cube.rotation.x -= Math.PI * 2;
-      if (cube.rotation.y >= Math.PI * 2) cube.rotation.y -= Math.PI * 2;
-      if (cube.rotation.z >= Math.PI * 2) cube.rotation.z -= Math.PI * 2;
+      if (edgeLinesRef.current) edgeLinesRef.current.rotation.copy(cube.rotation);
+      if (wireframeCubeRef.current) wireframeCubeRef.current.rotation.copy(cube.rotation);
       
-      // Sync edge lines and wireframe cube rotation
-      edgeLines.rotation.copy(cube.rotation);
-      wireframeCube.rotation.copy(cube.rotation);
-      
-      // Animate wireframe color with smooth transitions
-      const wireframeMaterial = wireframeCube.material;
-      const color1 = new THREE.Color(0x8B5CF6); // Purple
-      const color2 = new THREE.Color(0x06B6D4); // Cyan
-      const color3 = new THREE.Color(0x10B981); // Green
-      const color4 = new THREE.Color(0xF59E0B); // Amber
-      const color5 = new THREE.Color(0xEF4444); // Red
-      const color6 = new THREE.Color(0xEC4899); // Pink
-      
-      // Smooth easing function
-      const smoothStep = (t) => t * t * (3 - 2 * t);
-      
-      let wireframeColor = new THREE.Color();
-      const cycle = (elapsed * 0.15) % 6;
-      const progress = cycle % 1;
-      const smoothProgress = smoothStep(progress);
-      
-      if (cycle < 1) {
-        wireframeColor.lerpColors(color1, color2, smoothProgress);
-      } else if (cycle < 2) {
-        wireframeColor.lerpColors(color2, color3, smoothProgress);
-      } else if (cycle < 3) {
-        wireframeColor.lerpColors(color3, color4, smoothProgress);
-      } else if (cycle < 4) {
-        wireframeColor.lerpColors(color4, color5, smoothProgress);
-      } else if (cycle < 5) {
-        wireframeColor.lerpColors(color5, color6, smoothProgress);
-      } else {
-        wireframeColor.lerpColors(color6, color1, smoothProgress);
+      // Wireframe color (8 colors)
+      if (wireframeCubeRef.current && !colorPausedRef.current) {
+        const wireframeMaterial = wireframeCubeRef.current.material;
+        const cycle = (elapsed * 0.1) % 8;
+        
+        const cycleKey = Math.floor(cycle * 10);
+        if (!wireframeMaterial.userData.lastCycleKey || wireframeMaterial.userData.lastCycleKey !== cycleKey) {
+          wireframeMaterial.userData.lastCycleKey = cycleKey;
+          
+          const colors8 = cubeColors.map(c => new THREE.Color(c));
+          const smoothStep = (t) => t * t * (3 - 2 * t);
+          
+          let wireframeColor = new THREE.Color();
+          const idx = Math.floor(cycle);
+          const nextIdx = (idx + 1) % 8;
+          const progress = smoothStep(cycle % 1);
+          
+          wireframeColor.lerpColors(colors8[idx], colors8[nextIdx], progress);
+          wireframeMaterial.color.copy(wireframeColor);
+        }
       }
       
-      wireframeMaterial.color.copy(wireframeColor);
-      
-      // Rotate icosahedron
-      icoLines.rotation.x = elapsed * 0.1;
-      icoLines.rotation.y = elapsed * 0.15;
-      
-      // Animate floating shapes
-      shapes.forEach((shape) => {
-        const { rotationSpeed, floatSpeed, floatOffset, originalY } = shape.userData;
-        shape.rotation.x += rotationSpeed.x;
-        shape.rotation.y += rotationSpeed.y;
-        shape.rotation.z += rotationSpeed.z;
-        shape.position.y = originalY + Math.sin(elapsed * floatSpeed + floatOffset) * 2;
-      });
-      
-      // Animate orbs around center
-      orbGroup.children.forEach((orb, i) => {
-        const { angle, radius, speed } = orb.userData;
-        orb.position.x = Math.cos(angle + elapsed * speed) * radius;
-        orb.position.z = Math.sin(angle + elapsed * speed) * radius;
-        orb.position.y = Math.sin(elapsed * 2 + i) * 3;
-      });
-      
-      // Camera follow mouse (subtle movement)
       camera.position.x += (targetRotation.current.y * 5 - camera.position.x) * 0.02;
       camera.position.y += (targetRotation.current.x * 5 - camera.position.y) * 0.02;
       camera.lookAt(0, 0, 0);
@@ -512,7 +470,7 @@ const AdvancedHeroScene = () => {
     };
     animate();
     
-    // === RESIZE ===
+    // Resize
     const handleResize = () => {
       const { width: w, height: h } = container.getBoundingClientRect();
       width = w;
@@ -524,8 +482,12 @@ const AdvancedHeroScene = () => {
     window.addEventListener('resize', handleResize);
     
     return () => {
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      if (reappearTimeoutRef.current) clearTimeout(reappearTimeoutRef.current);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('click', clickHandler, true);
+      renderer.domElement?.removeEventListener('click', clickHandler, true);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
       if (container.contains(renderer.domElement)) {
@@ -533,7 +495,7 @@ const AdvancedHeroScene = () => {
       }
       renderer.dispose();
     };
-  }, []);
+  }, [changeThemeColor]);
   
   return (
     <div
@@ -542,7 +504,7 @@ const AdvancedHeroScene = () => {
         position: 'absolute',
         inset: 0,
         zIndex: 0,
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

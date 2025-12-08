@@ -5,6 +5,7 @@ import { ThemeProvider } from '../context/theme';
 import { MenuProvider } from '../context/menu';
 import { CursorProvider } from '../context/cursor';
 import GlobalStyles from '../styles/global';
+import RippleEffect from '../components/RippleEffect/RippleEffect';
 
 export default function RootLayout({ children }) {
   return (
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
             <MenuProvider>
               <CursorProvider>
                 <GlobalStyles />
+                <RippleEffect />
                 {children}
               </CursorProvider>
             </MenuProvider>

@@ -228,6 +228,12 @@ const HeroContent = styled(motion.div)`
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 72px);
+  pointer-events: none; /* Allow clicks to pass through to WebGL scene */
+  
+  /* Re-enable pointer events for interactive children */
+  a, button {
+    pointer-events: auto;
+  }
   
   @media (max-width: 768px) {
     min-height: calc(100vh - 64px);
