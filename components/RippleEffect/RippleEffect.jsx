@@ -1,93 +1,107 @@
-import React, { useEffect, useState, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React from 'react';
+import styled from 'styled-components';
 import { useTheme } from '../../context/theme';
 
 const RippleEffect = () => {
-  const { isRippling, rippleColor, ripplePosition } = useTheme();
-  const [ripples, setRipples] = useState([]);
-  const rippleIdRef = useRef(0);
-
-  useEffect(() => {
-    if (isRippling && rippleColor) {
-      const newRipple = {
-        id: rippleIdRef.current++,
-        x: ripplePosition.x,
-        y: ripplePosition.y,
-        color: rippleColor,
-      };
-      
-      setRipples((prev) => [...prev, newRipple]);
-
-      // Remove ripple after animation completes
-      const timer = setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 5500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isRippling, rippleColor, ripplePosition]);
-
+  const { isRippling, rippleColor, ripplePosition, rippleRadius } = useTheme();
+  
+  if (!isRippling || rippleRadius <= 0) return null;
+  
   return (
     <RippleContainer>
-      {ripples.map((ripple) => (
-        <RippleCircle
-          key={ripple.id}
-          $x={ripple.x}
-          $y={ripple.y}
-          $color={ripple.color}
-        />
-      ))}
+      {/* Main wave ring - just a border, no fill */}
+      <WaveRing
+        $x={ripplePosition.x}
+        $y={ripplePosition.y}
+        $radius={rippleRadius}
+        $color={rippleColor}
+      />
+      
+      {/* Outer glow ring */}
+      <GlowRing
+        $x={ripplePosition.x}
+        $y={ripplePosition.y}
+        $radius={rippleRadius}
+        $color={rippleColor}
+      />
+      
+      {/* Inner subtle ring */}
+      <InnerRing
+        $x={ripplePosition.x}
+        $y={ripplePosition.y}
+        $radius={rippleRadius}
+        $color={rippleColor}
+      />
     </RippleContainer>
   );
 };
 
 const RippleContainer = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   pointer-events: none;
   z-index: 9998;
   overflow: hidden;
 `;
 
-const rippleExpand = keyframes`
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
+// Main visible wave - just a ring, transparent inside
+const WaveRing = styled.div.attrs(props => ({
+  style: {
+    left: `${props.$x}px`,
+    top: `${props.$y}px`,
+    width: `${props.$radius * 2}px`,
+    height: `${props.$radius * 2}px`,
+    borderColor: props.$color,
+    boxShadow: `
+      0 0 30px 5px ${props.$color}50,
+      0 0 60px 10px ${props.$color}30,
+      0 0 100px 20px ${props.$color}15
+    `,
+  },
+}))`
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 4px solid;
+  background: transparent;
+  will-change: width, height;
 `;
 
-const RippleCircle = styled.div`
+// Outer soft glow
+const GlowRing = styled.div.attrs(props => ({
+  style: {
+    left: `${props.$x}px`,
+    top: `${props.$y}px`,
+    width: `${props.$radius * 2 + 60}px`,
+    height: `${props.$radius * 2 + 60}px`,
+    borderColor: `${props.$color}20`,
+  },
+}))`
   position: absolute;
-  left: ${props => props.$x}px;
-  top: ${props => props.$y}px;
-  width: 300vmax;
-  height: 300vmax;
   border-radius: 50%;
-  pointer-events: none;
-  
-  /* GPU acceleration */
-  will-change: transform, opacity;
-  transform: translate(-50%, -50%) scale(0);
-  
-  /* Simple radial gradient - NO blur filter */
-  background: radial-gradient(
-    circle,
-    ${props => props.$color} 0%,
-    ${props => props.$color}90 20%,
-    ${props => props.$color}50 40%,
-    ${props => props.$color}20 60%,
-    transparent 70%
-  );
-  
-  /* Pure CSS animation - 5 seconds, optimized */
-  animation: ${rippleExpand} 5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translate(-50%, -50%);
+  border: 30px solid;
+  background: transparent;
+  filter: blur(20px);
+  will-change: width, height;
+`;
+
+// Inner ring for depth
+const InnerRing = styled.div.attrs(props => ({
+  style: {
+    left: `${props.$x}px`,
+    top: `${props.$y}px`,
+    width: `${Math.max(0, props.$radius * 2 - 20)}px`,
+    height: `${Math.max(0, props.$radius * 2 - 20)}px`,
+    borderColor: `${props.$color}40`,
+  },
+}))`
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid;
+  background: transparent;
+  will-change: width, height;
 `;
 
 export default RippleEffect;

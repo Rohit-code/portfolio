@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import darkTheme from '../styles/themes/dark';
 
@@ -12,7 +12,7 @@ export const useTheme = () => {
   return context;
 };
 
-// Helper function to adjust brightness
+// Helper functions
 const adjustBrightness = (hex, percent) => {
   const num = parseInt(hex.replace('#', ''), 16);
   const r = Math.max(0, Math.min(255, (num >> 16) + percent));
@@ -21,7 +21,6 @@ const adjustBrightness = (hex, percent) => {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 };
 
-// Helper to parse hex to RGB
 const hexToRgb = (hex) => {
   const cleanHex = hex.replace('#', '');
   return {
@@ -31,14 +30,12 @@ const hexToRgb = (hex) => {
   };
 };
 
-// Check if color is light
 const isLightColor = (hex) => {
   const { r, g, b } = hexToRgb(hex);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6;
 };
 
-// Helper to darken color for dark theme background
 const darkenForBackground = (hex, amount = 0.12) => {
   const { r, g, b } = hexToRgb(hex);
   const newR = Math.max(0, Math.floor(r * amount));
@@ -47,7 +44,6 @@ const darkenForBackground = (hex, amount = 0.12) => {
   return `#${[newR, newG, newB].map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 
-// Helper to lighten color for light theme background
 const lightenForBackground = (hex, amount = 0.95) => {
   const { r, g, b } = hexToRgb(hex);
   const newR = Math.min(255, Math.floor(r + (255 - r) * amount));
@@ -56,7 +52,6 @@ const lightenForBackground = (hex, amount = 0.95) => {
   return `#${[newR, newG, newB].map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 
-// Create dark theme variant with specific color
 const createDarkThemedVariant = (baseTheme, color) => {
   const { r, g, b } = hexToRgb(color);
   const background = darkenForBackground(color, 0.12);
@@ -117,7 +112,6 @@ const createDarkThemedVariant = (baseTheme, color) => {
   };
 };
 
-// Create light theme variant with specific color
 const createLightThemedVariant = (baseTheme, color) => {
   const { r, g, b } = hexToRgb(color);
   const background = lightenForBackground(color, 0.92);
@@ -183,7 +177,6 @@ const createLightThemedVariant = (baseTheme, color) => {
   };
 };
 
-// Create theme based on color (auto-detect light/dark)
 const createThemedVariant = (baseTheme, color) => {
   if (isLightColor(color)) {
     return createLightThemedVariant(baseTheme, color);
@@ -195,8 +188,10 @@ export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(darkTheme);
   const [rippleColor, setRippleColor] = useState(null);
   const [ripplePosition, setRipplePosition] = useState({ x: 0, y: 0 });
+  const [rippleRadius, setRippleRadius] = useState(0);
   const [isRippling, setIsRippling] = useState(false);
   
+  const animationRef = useRef(null);
   const themeChangedRef = useRef(false);
 
   const changeThemeColor = useCallback((color, mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2) => {
@@ -204,30 +199,76 @@ export const ThemeProvider = ({ children }) => {
     
     themeChangedRef.current = true;
     
-    // Apply theme change IMMEDIATELY - no delay
-    const newTheme = createThemedVariant(darkTheme, color);
-    setTheme(newTheme);
+    // Calculate max radius needed to cover entire screen from click point
+    const maxX = Math.max(mouseX, window.innerWidth - mouseX);
+    const maxY = Math.max(mouseY, window.innerHeight - mouseY);
+    const maxRadius = Math.sqrt(maxX * maxX + maxY * maxY) * 1.1;
     
-    // Trigger ripple effect
+    // Create the new theme
+    const newTheme = createThemedVariant(darkTheme, color);
+    
+    // Start ripple
     setRippleColor(color);
     setRipplePosition({ x: mouseX, y: mouseY });
+    setRippleRadius(0);
     setIsRippling(true);
     
-    // Reset rippling state after animation
+    // Apply theme change early (when wave is ~20% through)
+    // This makes it feel like the wave is causing the change
+    const themeChangeDelay = 800; // ms
     setTimeout(() => {
-      setIsRippling(false);
-    }, 5000);
+      setTheme(newTheme);
+    }, themeChangeDelay);
+    
+    // Animate ripple radius
+    const duration = 3000; // 3 seconds
+    const startTime = performance.now();
+    
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out for smooth deceleration
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentRadius = eased * maxRadius;
+      
+      setRippleRadius(currentRadius);
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        // Animation complete
+        setIsRippling(false);
+        setRippleRadius(0);
+      }
+    };
+    
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    animationRef.current = requestAnimationFrame(animate);
     
   }, []);
 
-  const resetTheme = useCallback(() => {
-    // Keep current theme
-  }, []);
+  const resetTheme = useCallback(() => {}, []);
   
   const forceResetTheme = useCallback(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     setTheme(darkTheme);
     themeChangedRef.current = false;
     setIsRippling(false);
+    setRippleRadius(0);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, []);
 
   return (
@@ -239,6 +280,7 @@ export const ThemeProvider = ({ children }) => {
       forceResetTheme,
       rippleColor,
       ripplePosition,
+      rippleRadius,
       isRippling,
     }}>
       <StyledThemeProvider theme={theme}>
