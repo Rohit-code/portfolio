@@ -31,10 +31,9 @@ const hexToRgb = (hex) => {
   };
 };
 
-// Check if color is light (for determining if we need light or dark theme)
+// Check if color is light
 const isLightColor = (hex) => {
   const { r, g, b } = hexToRgb(hex);
-  // Calculate luminance
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6;
 };
@@ -131,7 +130,7 @@ const createLightThemedVariant = (baseTheme, color) => {
     background,
     backgroundSecondary: lightenForBackground(color, 0.88),
     backgroundElevated: '#FFFFFF',
-    primary: adjustBrightness(color, -40), // Darker primary for contrast
+    primary: adjustBrightness(color, -40),
     primaryMuted: `rgba(${r}, ${g}, ${b}, 0.15)`,
     borderAccent: `rgba(${dr}, ${dg}, ${db}, 0.3)`,
     border: `rgba(0, 0, 0, 0.08)`,
@@ -201,43 +200,34 @@ export const ThemeProvider = ({ children }) => {
   const themeChangedRef = useRef(false);
 
   const changeThemeColor = useCallback((color, mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2) => {
-    console.log('Theme: changeThemeColor called', { color, mouseX, mouseY, isLight: isLightColor(color) });
-    if (!color) {
-      console.warn('Theme: No color provided');
-      return;
-    }
+    if (!color) return;
     
     themeChangedRef.current = true;
     
-    // Trigger ripple effect immediately
+    // Apply theme change IMMEDIATELY - no delay
+    const newTheme = createThemedVariant(darkTheme, color);
+    setTheme(newTheme);
+    
+    // Trigger ripple effect
     setRippleColor(color);
     setRipplePosition({ x: mouseX, y: mouseY });
     setIsRippling(true);
     
-    // Apply theme change after a small delay to sync with ripple start
-    setTimeout(() => {
-      const newTheme = createThemedVariant(darkTheme, color);
-      setTheme(newTheme);
-      console.log('Theme: New theme applied', { primaryColor: color, mode: newTheme.mode });
-    }, 300);
-    
-    // Reset rippling state after animation completes
+    // Reset rippling state after animation
     setTimeout(() => {
       setIsRippling(false);
-      console.log('Theme: Ripple animation complete');
-    }, 7000);
+    }, 5000);
     
   }, []);
 
   const resetTheme = useCallback(() => {
-    console.log('Theme: resetTheme called - keeping current theme');
+    // Keep current theme
   }, []);
   
   const forceResetTheme = useCallback(() => {
     setTheme(darkTheme);
     themeChangedRef.current = false;
     setIsRippling(false);
-    console.log('Theme: Force reset to default');
   }, []);
 
   return (

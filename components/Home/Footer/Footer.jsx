@@ -102,13 +102,13 @@ const Footer = () => {
           </Copyright>
           
           <LegalLinks>
-            <LegalLink href="/privacy">Privacy Policy</LegalLink>
-            <LegalLink href="/terms">Terms of Service</LegalLink>
+            <LegalLink href="/privacy">Privacy</LegalLink>
+            <LegalLink href="/terms">Terms</LegalLink>
           </LegalLinks>
           
           <Location>
             <LocationIcon>📍</LocationIcon>
-            Visakhapatnam, India
+            <span>Visakhapatnam, India</span>
           </Location>
         </FooterBottom>
       </Container>
@@ -120,78 +120,130 @@ const Footer = () => {
 
 const FooterSection = styled.footer`
   position: relative;
-  padding: clamp(60px, 8vw, 100px) 0 clamp(24px, 4vw, 40px);
+  padding: 48px 0 24px;
   background: ${({ theme }) => theme.background};
   border-top: 1px solid ${({ theme }) => theme.border};
   overflow: hidden;
+  
+  @media (min-width: 768px) {
+    padding: 80px 0 32px;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: 100px 0 40px;
+  }
 `;
 
 const Container = styled.div`
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 clamp(24px, 5vw, 64px);
-`;
-
-const FooterTop = styled.div`
-  display: grid;
-  grid-template-columns: 1.2fr 2fr;
-  gap: 80px;
-  margin-bottom: 60px;
+  padding: 0 20px;
   
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    gap: 48px;
+  @media (min-width: 480px) {
+    padding: 0 24px;
+  }
+  
+  @media (min-width: 768px) {
+    padding: 0 32px;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: 0 64px;
   }
 `;
 
-const BrandColumn = styled.div``;
+const FooterTop = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-bottom: 40px;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 48px;
+    margin-bottom: 60px;
+  }
+  
+  @media (min-width: 1024px) {
+    gap: 80px;
+  }
+`;
+
+const BrandColumn = styled.div`
+  @media (min-width: 768px) {
+    flex: 0 0 auto;
+    max-width: 280px;
+  }
+`;
 
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 16px;
+  
+  @media (min-width: 768px) {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
 `;
 
 const LogoIcon = styled.svg`
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   stroke: ${({ theme }) => theme.primary};
   fill: none;
+  
+  @media (min-width: 768px) {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const LogoText = styled.span`
   font-family: 'Satoshi', sans-serif;
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: ${({ theme }) => theme.text.primary};
+  
+  @media (min-width: 768px) {
+    font-size: 1.125rem;
+  }
 `;
 
 const BrandTagline = styled.p`
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   color: ${({ theme }) => theme.text.secondary};
-  max-width: 280px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
+  
+  @media (min-width: 768px) {
+    font-size: 0.9375rem;
+    margin-bottom: 28px;
+  }
 `;
 
 const SocialLinks = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  
+  @media (min-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const SocialLink = styled(motion.a)`
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${({ theme }) => theme.backgroundSecondary};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
   color: ${({ theme }) => theme.text.secondary};
   text-decoration: none;
   transition: background 0.3s ease, color 0.3s ease;
@@ -200,45 +252,61 @@ const SocialLink = styled(motion.a)`
     background: ${({ theme }) => theme.surface.hover};
     color: ${({ theme }) => theme.primary};
   }
+  
+  @media (min-width: 768px) {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+  }
 `;
 
 const LinksColumns = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(24px, 5vw, 48px);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px 24px;
   
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
     gap: 32px;
   }
   
-  @media (max-width: 400px) {
-    grid-template-columns: 1fr;
-    gap: 24px;
+  @media (min-width: 768px) {
+    flex: 1;
+    gap: 48px;
   }
 `;
 
 const LinkColumn = styled.div``;
 
 const ColumnTitle = styled.h4`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: ${({ theme }) => theme.text.primary};
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  
+  @media (min-width: 768px) {
+    font-size: 0.8125rem;
+    margin-bottom: 20px;
+  }
 `;
 
 const LinkList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  
+  @media (min-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const LinkItem = styled.li``;
 
 const FooterLink = styled(Link)`
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: ${({ theme }) => theme.text.secondary};
   text-decoration: none;
   transition: color 0.2s ease;
@@ -246,50 +314,61 @@ const FooterLink = styled(Link)`
   &:hover {
     color: ${({ theme }) => theme.primary};
   }
+  
+  @media (min-width: 768px) {
+    font-size: 0.9375rem;
+  }
 `;
 
 const Divider = styled.div`
   height: 1px;
   background: ${({ theme }) => theme.border};
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  
+  @media (min-width: 768px) {
+    margin-bottom: 32px;
+  }
 `;
 
 const FooterBottom = styled.div`
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
   gap: 16px;
+  text-align: center;
   
-  @media (max-width: 700px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  @media (max-width: 400px) {
-    gap: 8px;
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    gap: 24px;
   }
 `;
 
 const Copyright = styled.p`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme }) => theme.text.tertiary};
+  order: 2;
+  
+  @media (min-width: 768px) {
+    font-size: 0.8125rem;
+    order: 0;
+  }
 `;
 
 const LegalLinks = styled.div`
   display: flex;
-  gap: clamp(12px, 3vw, 24px);
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 20px;
+  order: 1;
   
-  @media (max-width: 400px) {
-    gap: 12px;
+  @media (min-width: 768px) {
+    gap: 24px;
+    order: 0;
   }
 `;
 
 const LegalLink = styled(Link)`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme }) => theme.text.tertiary};
   text-decoration: none;
   transition: color 0.2s ease;
@@ -297,14 +376,24 @@ const LegalLink = styled(Link)`
   &:hover {
     color: ${({ theme }) => theme.text.secondary};
   }
+  
+  @media (min-width: 768px) {
+    font-size: 0.8125rem;
+  }
 `;
 
 const Location = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme }) => theme.text.tertiary};
+  order: 0;
+  
+  @media (min-width: 768px) {
+    font-size: 0.8125rem;
+    order: 0;
+  }
 `;
 
 const LocationIcon = styled.span`
@@ -313,20 +402,22 @@ const LocationIcon = styled.span`
 
 const FooterGlow = styled.div`
   position: absolute;
-  bottom: -200px;
+  bottom: -150px;
   left: 50%;
   transform: translateX(-50%);
-  width: clamp(300px, 60vw, 600px);
-  height: clamp(200px, 40vw, 400px);
+  width: 300px;
+  height: 200px;
   background: ${({ theme }) => theme.gradient.meshViolet};
-  filter: blur(120px);
+  filter: blur(80px);
   opacity: 0.3;
   pointer-events: none;
   
-  @media (max-width: 600px) {
-    filter: blur(80px);
+  @media (min-width: 768px) {
+    width: 500px;
+    height: 300px;
+    bottom: -200px;
+    filter: blur(120px);
   }
 `;
 
 export default Footer;
-

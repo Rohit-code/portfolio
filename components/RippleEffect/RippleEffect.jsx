@@ -8,9 +8,7 @@ const RippleEffect = () => {
   const rippleIdRef = useRef(0);
 
   useEffect(() => {
-    console.log('RippleEffect: Effect triggered', { isRippling, rippleColor, ripplePosition });
     if (isRippling && rippleColor) {
-      console.log('RippleEffect: Creating new ripple', { x: ripplePosition.x, y: ripplePosition.y, color: rippleColor });
       const newRipple = {
         id: rippleIdRef.current++,
         x: ripplePosition.x,
@@ -18,19 +16,12 @@ const RippleEffect = () => {
         color: rippleColor,
       };
       
-      setRipples((prev) => {
-        console.log('RippleEffect: Adding ripple, total ripples:', prev.length + 1);
-        return [...prev, newRipple];
-      });
+      setRipples((prev) => [...prev, newRipple]);
 
-      // Remove ripple after animation completes (7 seconds + buffer)
+      // Remove ripple after animation completes
       const timer = setTimeout(() => {
-        setRipples((prev) => {
-          const filtered = prev.filter((r) => r.id !== newRipple.id);
-          console.log('RippleEffect: Removing ripple, remaining:', filtered.length);
-          return filtered;
-        });
-      }, 7500);
+        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+      }, 5500);
 
       return () => clearTimeout(timer);
     }
@@ -61,29 +52,13 @@ const RippleContainer = styled.div`
   overflow: hidden;
 `;
 
-// Pure CSS keyframes animation - no JS updates during animation
 const rippleExpand = keyframes`
   0% {
     transform: translate(-50%, -50%) scale(0);
-    opacity: 0.8;
-  }
-  10% {
-    opacity: 0.9;
-  }
-  30% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  70% {
-    opacity: 0.3;
-  }
-  85% {
-    opacity: 0.15;
+    opacity: 0.6;
   }
   100% {
-    transform: translate(-50%, -50%) scale(20);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 0;
   }
 `;
@@ -92,36 +67,27 @@ const RippleCircle = styled.div`
   position: absolute;
   left: ${props => props.$x}px;
   top: ${props => props.$y}px;
-  width: 500px;
-  height: 500px;
+  width: 300vmax;
+  height: 300vmax;
   border-radius: 50%;
   pointer-events: none;
   
-  /* GPU acceleration hints */
+  /* GPU acceleration */
   will-change: transform, opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   transform: translate(-50%, -50%) scale(0);
   
-  /* Radial gradient for smooth color spread */
+  /* Simple radial gradient - NO blur filter */
   background: radial-gradient(
     circle,
-    ${props => props.$color}80 0%,
-    ${props => props.$color}60 15%,
-    ${props => props.$color}40 30%,
-    ${props => props.$color}25 50%,
-    ${props => props.$color}15 70%,
-    transparent 85%
+    ${props => props.$color} 0%,
+    ${props => props.$color}90 20%,
+    ${props => props.$color}50 40%,
+    ${props => props.$color}20 60%,
+    transparent 70%
   );
   
-  /* Reduced blur for better performance while still looking smooth */
-  filter: blur(60px);
-  
-  /* Blend mode for nice color mixing */
-  mix-blend-mode: screen;
-  
-  /* Pure CSS animation - 7 seconds, smooth easing */
-  animation: ${rippleExpand} 7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* Pure CSS animation - 5 seconds, optimized */
+  animation: ${rippleExpand} 5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 `;
 
 export default RippleEffect;
